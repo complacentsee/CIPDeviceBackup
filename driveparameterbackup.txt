@@ -1,0 +1,1465 @@
+{
+  "VendorID": 1,
+  "DeviceType": 150,
+  "ProductCode": 9,
+  "revision": {
+    "Major": 7,
+    "Minor": 1
+  },
+  "SerialNumber": 3760330521,
+  "ProductName": "PowerFlex 525 3P 460V   7.5HP"
+}
+{
+  "driveParameters": [
+    {
+      "parameterNumber": 30,
+      "parameterName": "Language",
+      "parameterValue": "1"
+    },
+    {
+      "parameterNumber": 31,
+      "parameterName": "Motor NP Volts",
+      "parameterValue": "460"
+    },
+    {
+      "parameterNumber": 32,
+      "parameterName": "Motor NP Hertz",
+      "parameterValue": "60"
+    },
+    {
+      "parameterNumber": 33,
+      "parameterName": "Motor OL Current",
+      "parameterValue": "130"
+    },
+    {
+      "parameterNumber": 34,
+      "parameterName": "Motor NP FLA",
+      "parameterValue": "101"
+    },
+    {
+      "parameterNumber": 35,
+      "parameterName": "Motor NP Poles",
+      "parameterValue": "4"
+    },
+    {
+      "parameterNumber": 36,
+      "parameterName": "Motor NP RPM",
+      "parameterValue": "1750"
+    },
+    {
+      "parameterNumber": 37,
+      "parameterName": "Motor NP Power",
+      "parameterValue": "550"
+    },
+    {
+      "parameterNumber": 39,
+      "parameterName": "Torque Perf Mode",
+      "parameterValue": "1"
+    },
+    {
+      "parameterNumber": 40,
+      "parameterName": "Autotune",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 41,
+      "parameterName": "Accel Time 1",
+      "parameterValue": "1000"
+    },
+    {
+      "parameterNumber": 42,
+      "parameterName": "Decel Time 1",
+      "parameterValue": "1000"
+    },
+    {
+      "parameterNumber": 43,
+      "parameterName": "Minimum Freq",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 44,
+      "parameterName": "Maximum Freq",
+      "parameterValue": "6000"
+    },
+    {
+      "parameterNumber": 45,
+      "parameterName": "Stop Mode",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 46,
+      "parameterName": "Start Source 1",
+      "parameterValue": "5"
+    },
+    {
+      "parameterNumber": 47,
+      "parameterName": "Speed Reference1",
+      "parameterValue": "15"
+    },
+    {
+      "parameterNumber": 48,
+      "parameterName": "Start Source 2",
+      "parameterValue": "2"
+    },
+    {
+      "parameterNumber": 49,
+      "parameterName": "Speed Reference2",
+      "parameterValue": "5"
+    },
+    {
+      "parameterNumber": 50,
+      "parameterName": "Start Source 3",
+      "parameterValue": "5"
+    },
+    {
+      "parameterNumber": 51,
+      "parameterName": "Speed Reference3",
+      "parameterValue": "15"
+    },
+    {
+      "parameterNumber": 52,
+      "parameterName": "Average kWh Cost",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 62,
+      "parameterName": "DigIn TermBlk 02",
+      "parameterValue": "48"
+    },
+    {
+      "parameterNumber": 63,
+      "parameterName": "DigIn TermBlk 03",
+      "parameterValue": "50"
+    },
+    {
+      "parameterNumber": 64,
+      "parameterName": "2-Wire Mode",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 65,
+      "parameterName": "DigIn TermBlk 05",
+      "parameterValue": "7"
+    },
+    {
+      "parameterNumber": 66,
+      "parameterName": "DigIn TermBlk 06",
+      "parameterValue": "7"
+    },
+    {
+      "parameterNumber": 67,
+      "parameterName": "DigIn TermBlk 07",
+      "parameterValue": "5"
+    },
+    {
+      "parameterNumber": 68,
+      "parameterName": "DigIn TermBlk 08",
+      "parameterValue": "9"
+    },
+    {
+      "parameterNumber": 69,
+      "parameterName": "Opto Out1 Sel",
+      "parameterValue": "2"
+    },
+    {
+      "parameterNumber": 70,
+      "parameterName": "Opto Out1 Level",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 71,
+      "parameterName": "Opto Out1 LevelF",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 72,
+      "parameterName": "Opto Out2 Sel",
+      "parameterValue": "1"
+    },
+    {
+      "parameterNumber": 73,
+      "parameterName": "Opto Out2 Level",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 74,
+      "parameterName": "Opto Out2 LevelF",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 75,
+      "parameterName": "Opto Out Logic",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 76,
+      "parameterName": "Relay Out1 Sel",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 77,
+      "parameterName": "Relay Out1 Level",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 78,
+      "parameterName": "RelayOut1 LevelF",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 79,
+      "parameterName": "Relay 1 On Time",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 80,
+      "parameterName": "Relay 1 Off Time",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 81,
+      "parameterName": "Relay Out2 Sel",
+      "parameterValue": "2"
+    },
+    {
+      "parameterNumber": 82,
+      "parameterName": "Relay Out2 Level",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 83,
+      "parameterName": "RelayOut2 LevelF",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 84,
+      "parameterName": "Relay 2 On Time",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 85,
+      "parameterName": "Relay 2 Off Time",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 86,
+      "parameterName": "EM Brk Off Delay",
+      "parameterValue": "200"
+    },
+    {
+      "parameterNumber": 87,
+      "parameterName": "EM Brk On Delay",
+      "parameterValue": "200"
+    },
+    {
+      "parameterNumber": 88,
+      "parameterName": "Analog Out Sel",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 89,
+      "parameterName": "Analog Out High",
+      "parameterValue": "100"
+    },
+    {
+      "parameterNumber": 90,
+      "parameterName": "Anlg Out Setpt",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 91,
+      "parameterName": "Anlg In 0-10V Lo",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 92,
+      "parameterName": "Anlg In 0-10V Hi",
+      "parameterValue": "1000"
+    },
+    {
+      "parameterNumber": 93,
+      "parameterName": "10V Bipolar Enbl",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 94,
+      "parameterName": "Anlg In V Loss",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 95,
+      "parameterName": "Anlg In4-20mA Lo",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 96,
+      "parameterName": "Anlg In4-20mA Hi",
+      "parameterValue": "1000"
+    },
+    {
+      "parameterNumber": 97,
+      "parameterName": "Anlg In mA Loss",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 98,
+      "parameterName": "Anlg Loss Delay",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 99,
+      "parameterName": "Analog In Filter",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 100,
+      "parameterName": "Sleep-Wake Sel",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 101,
+      "parameterName": "Sleep Level",
+      "parameterValue": "100"
+    },
+    {
+      "parameterNumber": 102,
+      "parameterName": "Sleep Time",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 103,
+      "parameterName": "Wake Level",
+      "parameterValue": "150"
+    },
+    {
+      "parameterNumber": 104,
+      "parameterName": "Wake Time",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 105,
+      "parameterName": "Safety Open En",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 106,
+      "parameterName": "SafetyFlt RstCfg",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 121,
+      "parameterName": "Comm Write Mode",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 122,
+      "parameterName": "Cmd Stat Select",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 123,
+      "parameterName": "RS485 Data Rate",
+      "parameterValue": "3"
+    },
+    {
+      "parameterNumber": 124,
+      "parameterName": "RS485 Node Addr",
+      "parameterValue": "100"
+    },
+    {
+      "parameterNumber": 125,
+      "parameterName": "Comm Loss Action",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 126,
+      "parameterName": "Comm Loss Time",
+      "parameterValue": "50"
+    },
+    {
+      "parameterNumber": 127,
+      "parameterName": "RS485 Format",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 128,
+      "parameterName": "EN Addr Sel",
+      "parameterValue": "1"
+    },
+    {
+      "parameterNumber": 129,
+      "parameterName": "EN IP Addr Cfg 1",
+      "parameterValue": "10"
+    },
+    {
+      "parameterNumber": 130,
+      "parameterName": "EN IP Addr Cfg 2",
+      "parameterValue": "20"
+    },
+    {
+      "parameterNumber": 131,
+      "parameterName": "EN IP Addr Cfg 3",
+      "parameterValue": "40"
+    },
+    {
+      "parameterNumber": 132,
+      "parameterName": "EN IP Addr Cfg 4",
+      "parameterValue": "8"
+    },
+    {
+      "parameterNumber": 133,
+      "parameterName": "EN Subnet Cfg 1",
+      "parameterValue": "255"
+    },
+    {
+      "parameterNumber": 134,
+      "parameterName": "EN Subnet Cfg 2",
+      "parameterValue": "255"
+    },
+    {
+      "parameterNumber": 135,
+      "parameterName": "EN Subnet Cfg 3",
+      "parameterValue": "252"
+    },
+    {
+      "parameterNumber": 136,
+      "parameterName": "EN Subnet Cfg 4",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 137,
+      "parameterName": "EN Gateway Cfg 1",
+      "parameterValue": "10"
+    },
+    {
+      "parameterNumber": 138,
+      "parameterName": "EN Gateway Cfg 2",
+      "parameterValue": "20"
+    },
+    {
+      "parameterNumber": 139,
+      "parameterName": "EN Gateway Cfg 3",
+      "parameterValue": "40"
+    },
+    {
+      "parameterNumber": 140,
+      "parameterName": "EN Gateway Cfg 4",
+      "parameterValue": "1"
+    },
+    {
+      "parameterNumber": 141,
+      "parameterName": "EN Rate Cfg",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 143,
+      "parameterName": "EN Comm Flt Actn",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 144,
+      "parameterName": "EN Idle Flt Actn",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 145,
+      "parameterName": "EN Flt Cfg Logic",
+      "parameterValue": "0000000000000000"
+    },
+    {
+      "parameterNumber": 146,
+      "parameterName": "EN Flt Cfg Ref",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 147,
+      "parameterName": "EN Flt Cfg DL 1",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 148,
+      "parameterName": "EN Flt Cfg DL 2",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 149,
+      "parameterName": "EN Flt Cfg DL 3",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 150,
+      "parameterName": "EN Flt Cfg DL 4",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 169,
+      "parameterName": "MultiDrv Sel",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 171,
+      "parameterName": "Drv 1 Addr",
+      "parameterValue": "2"
+    },
+    {
+      "parameterNumber": 172,
+      "parameterName": "Drv 2 Addr",
+      "parameterValue": "3"
+    },
+    {
+      "parameterNumber": 173,
+      "parameterName": "Drv 3 Addr",
+      "parameterValue": "4"
+    },
+    {
+      "parameterNumber": 174,
+      "parameterName": "Drv 4 Addr",
+      "parameterValue": "5"
+    },
+    {
+      "parameterNumber": 175,
+      "parameterName": "DSI I/O Cfg",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 180,
+      "parameterName": "Stp Logic 0",
+      "parameterValue": "0000000011110001"
+    },
+    {
+      "parameterNumber": 181,
+      "parameterName": "Stp Logic 1",
+      "parameterValue": "0000000011110001"
+    },
+    {
+      "parameterNumber": 182,
+      "parameterName": "Stp Logic 2",
+      "parameterValue": "0000000011110001"
+    },
+    {
+      "parameterNumber": 183,
+      "parameterName": "Stp Logic 3",
+      "parameterValue": "0000000011110001"
+    },
+    {
+      "parameterNumber": 184,
+      "parameterName": "Stp Logic 4",
+      "parameterValue": "0000000011110001"
+    },
+    {
+      "parameterNumber": 185,
+      "parameterName": "Stp Logic 5",
+      "parameterValue": "0000000011110001"
+    },
+    {
+      "parameterNumber": 186,
+      "parameterName": "Stp Logic 6",
+      "parameterValue": "0000000011110001"
+    },
+    {
+      "parameterNumber": 187,
+      "parameterName": "Stp Logic 7",
+      "parameterValue": "0000000011110001"
+    },
+    {
+      "parameterNumber": 190,
+      "parameterName": "Stp Logic Time 0",
+      "parameterValue": "300"
+    },
+    {
+      "parameterNumber": 191,
+      "parameterName": "Stp Logic Time 1",
+      "parameterValue": "300"
+    },
+    {
+      "parameterNumber": 192,
+      "parameterName": "Stp Logic Time 2",
+      "parameterValue": "300"
+    },
+    {
+      "parameterNumber": 193,
+      "parameterName": "Stp Logic Time 3",
+      "parameterValue": "300"
+    },
+    {
+      "parameterNumber": 194,
+      "parameterName": "Stp Logic Time 4",
+      "parameterValue": "300"
+    },
+    {
+      "parameterNumber": 195,
+      "parameterName": "Stp Logic Time 5",
+      "parameterValue": "300"
+    },
+    {
+      "parameterNumber": 196,
+      "parameterName": "Stp Logic Time 6",
+      "parameterValue": "300"
+    },
+    {
+      "parameterNumber": 197,
+      "parameterName": "Stp Logic Time 7",
+      "parameterValue": "300"
+    },
+    {
+      "parameterNumber": 200,
+      "parameterName": "Step Units 0",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 201,
+      "parameterName": "Step Units F 0",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 202,
+      "parameterName": "Step Units 1",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 203,
+      "parameterName": "Step Units F 1",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 204,
+      "parameterName": "Step Units 2",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 205,
+      "parameterName": "Step Units F 2",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 206,
+      "parameterName": "Step Units 3",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 207,
+      "parameterName": "Step Units F 3",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 208,
+      "parameterName": "Step Units 4",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 209,
+      "parameterName": "Step Units F 4",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 210,
+      "parameterName": "Step Units 5",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 211,
+      "parameterName": "Step Units F 5",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 212,
+      "parameterName": "Step Units 6",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 213,
+      "parameterName": "Step Units F 6",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 214,
+      "parameterName": "Step Units 7",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 215,
+      "parameterName": "Step Units F 7",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 410,
+      "parameterName": "Preset Freq 0",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 411,
+      "parameterName": "Preset Freq 1",
+      "parameterValue": "500"
+    },
+    {
+      "parameterNumber": 412,
+      "parameterName": "Preset Freq 2",
+      "parameterValue": "1000"
+    },
+    {
+      "parameterNumber": 413,
+      "parameterName": "Preset Freq 3",
+      "parameterValue": "2000"
+    },
+    {
+      "parameterNumber": 414,
+      "parameterName": "Preset Freq 4",
+      "parameterValue": "3000"
+    },
+    {
+      "parameterNumber": 415,
+      "parameterName": "Preset Freq 5",
+      "parameterValue": "4000"
+    },
+    {
+      "parameterNumber": 416,
+      "parameterName": "Preset Freq 6",
+      "parameterValue": "5000"
+    },
+    {
+      "parameterNumber": 417,
+      "parameterName": "Preset Freq 7",
+      "parameterValue": "6000"
+    },
+    {
+      "parameterNumber": 418,
+      "parameterName": "Preset Freq 8",
+      "parameterValue": "6000"
+    },
+    {
+      "parameterNumber": 419,
+      "parameterName": "Preset Freq 9",
+      "parameterValue": "6000"
+    },
+    {
+      "parameterNumber": 420,
+      "parameterName": "Preset Freq 10",
+      "parameterValue": "6000"
+    },
+    {
+      "parameterNumber": 421,
+      "parameterName": "Preset Freq 11",
+      "parameterValue": "6000"
+    },
+    {
+      "parameterNumber": 422,
+      "parameterName": "Preset Freq 12",
+      "parameterValue": "6000"
+    },
+    {
+      "parameterNumber": 423,
+      "parameterName": "Preset Freq 13",
+      "parameterValue": "6000"
+    },
+    {
+      "parameterNumber": 424,
+      "parameterName": "Preset Freq 14",
+      "parameterValue": "6000"
+    },
+    {
+      "parameterNumber": 425,
+      "parameterName": "Preset Freq 15",
+      "parameterValue": "6000"
+    },
+    {
+      "parameterNumber": 426,
+      "parameterName": "Keypad Freq",
+      "parameterValue": "6000"
+    },
+    {
+      "parameterNumber": 427,
+      "parameterName": "MOP Freq",
+      "parameterValue": "6000"
+    },
+    {
+      "parameterNumber": 428,
+      "parameterName": "MOP Reset Sel",
+      "parameterValue": "1"
+    },
+    {
+      "parameterNumber": 429,
+      "parameterName": "MOP Preload",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 430,
+      "parameterName": "MOP Time",
+      "parameterValue": "100"
+    },
+    {
+      "parameterNumber": 431,
+      "parameterName": "Jog Frequency",
+      "parameterValue": "1000"
+    },
+    {
+      "parameterNumber": 432,
+      "parameterName": "Jog Accel/Decel",
+      "parameterValue": "1000"
+    },
+    {
+      "parameterNumber": 433,
+      "parameterName": "Purge Frequency",
+      "parameterValue": "500"
+    },
+    {
+      "parameterNumber": 434,
+      "parameterName": "DC Brake Time",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 435,
+      "parameterName": "DC Brake Level",
+      "parameterValue": "7"
+    },
+    {
+      "parameterNumber": 436,
+      "parameterName": "DC Brk Time@Strt",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 437,
+      "parameterName": "DB Resistor Sel",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 438,
+      "parameterName": "DB Threshold",
+      "parameterValue": "1000"
+    },
+    {
+      "parameterNumber": 439,
+      "parameterName": "S Curve %",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 440,
+      "parameterName": "PWM Frequency",
+      "parameterValue": "40"
+    },
+    {
+      "parameterNumber": 441,
+      "parameterName": "Droop Hertz@ FLA",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 442,
+      "parameterName": "Accel Time 2",
+      "parameterValue": "1000"
+    },
+    {
+      "parameterNumber": 443,
+      "parameterName": "Decel Time 2",
+      "parameterValue": "1000"
+    },
+    {
+      "parameterNumber": 444,
+      "parameterName": "Accel Time 3",
+      "parameterValue": "1000"
+    },
+    {
+      "parameterNumber": 445,
+      "parameterName": "Decel Time 3",
+      "parameterValue": "1000"
+    },
+    {
+      "parameterNumber": 446,
+      "parameterName": "Accel Time 4",
+      "parameterValue": "1000"
+    },
+    {
+      "parameterNumber": 447,
+      "parameterName": "Decel Time 4",
+      "parameterValue": "1000"
+    },
+    {
+      "parameterNumber": 448,
+      "parameterName": "Skip Frequency 1",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 449,
+      "parameterName": "Skip Freq Band 1",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 450,
+      "parameterName": "Skip Frequency 2",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 451,
+      "parameterName": "Skip Freq Band 2",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 452,
+      "parameterName": "Skip Frequency 3",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 453,
+      "parameterName": "Skip Freq Band 3",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 454,
+      "parameterName": "Skip Frequency 4",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 455,
+      "parameterName": "Skip Freq Band 4",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 456,
+      "parameterName": "PID 1 Trim Hi",
+      "parameterValue": "600"
+    },
+    {
+      "parameterNumber": 457,
+      "parameterName": "PID 1 Trim Lo",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 458,
+      "parameterName": "PID 1 Trim Sel",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 459,
+      "parameterName": "PID 1 Ref Sel",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 460,
+      "parameterName": "PID 1 Fdback Sel",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 461,
+      "parameterName": "PID 1 Prop Gain",
+      "parameterValue": "1"
+    },
+    {
+      "parameterNumber": 462,
+      "parameterName": "PID 1 Integ Time",
+      "parameterValue": "20"
+    },
+    {
+      "parameterNumber": 463,
+      "parameterName": "PID 1 Diff Rate",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 464,
+      "parameterName": "PID 1 Setpoint",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 465,
+      "parameterName": "PID 1 Deadband",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 466,
+      "parameterName": "PID 1 Preload",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 467,
+      "parameterName": "PID 1 Invert Err",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 468,
+      "parameterName": "PID 2 Trim Hi",
+      "parameterValue": "600"
+    },
+    {
+      "parameterNumber": 469,
+      "parameterName": "PID 2 Trim Lo",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 470,
+      "parameterName": "PID 2 Trim Sel",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 471,
+      "parameterName": "PID 2 Ref Sel",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 472,
+      "parameterName": "PID 2 Fdback Sel",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 473,
+      "parameterName": "PID 2 Prop Gain",
+      "parameterValue": "1"
+    },
+    {
+      "parameterNumber": 474,
+      "parameterName": "PID 2 Integ Time",
+      "parameterValue": "20"
+    },
+    {
+      "parameterNumber": 475,
+      "parameterName": "PID 2 Diff Rate",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 476,
+      "parameterName": "PID 2 Setpoint",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 477,
+      "parameterName": "PID 2 Deadband",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 478,
+      "parameterName": "PID 2 Preload",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 479,
+      "parameterName": "PID 2 Invert Err",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 481,
+      "parameterName": "Process Disp Lo",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 482,
+      "parameterName": "Process Disp Hi",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 484,
+      "parameterName": "Current Limit 1",
+      "parameterValue": "195"
+    },
+    {
+      "parameterNumber": 485,
+      "parameterName": "Current Limit 2",
+      "parameterValue": "143"
+    },
+    {
+      "parameterNumber": 486,
+      "parameterName": "Shear Pin1 Level",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 487,
+      "parameterName": "Shear Pin 1 Time",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 488,
+      "parameterName": "Shear Pin2 Level",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 489,
+      "parameterName": "Shear Pin 2 Time",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 490,
+      "parameterName": "Load Loss Level",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 491,
+      "parameterName": "Load Loss Time",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 492,
+      "parameterName": "Stall Fault Time",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 493,
+      "parameterName": "Motor OL Select",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 494,
+      "parameterName": "Motor OL Ret",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 495,
+      "parameterName": "Drive OL Mode",
+      "parameterValue": "3"
+    },
+    {
+      "parameterNumber": 509,
+      "parameterName": "Speed Reg Sel",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 510,
+      "parameterName": "Freq 1",
+      "parameterValue": "833"
+    },
+    {
+      "parameterNumber": 511,
+      "parameterName": "Freq 1 BW",
+      "parameterValue": "10"
+    },
+    {
+      "parameterNumber": 512,
+      "parameterName": "Freq 2",
+      "parameterValue": "1500"
+    },
+    {
+      "parameterNumber": 513,
+      "parameterName": "Freq 2 BW",
+      "parameterValue": "10"
+    },
+    {
+      "parameterNumber": 514,
+      "parameterName": "Freq 3",
+      "parameterValue": "2000"
+    },
+    {
+      "parameterNumber": 515,
+      "parameterName": "Freq 3 BW",
+      "parameterValue": "10"
+    },
+    {
+      "parameterNumber": 516,
+      "parameterName": "PM Initial Sel",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 517,
+      "parameterName": "PM DC Inject Cur",
+      "parameterValue": "30"
+    },
+    {
+      "parameterNumber": 518,
+      "parameterName": "PM Align Time",
+      "parameterValue": "7"
+    },
+    {
+      "parameterNumber": 519,
+      "parameterName": "PM HFI NS Cur",
+      "parameterValue": "100"
+    },
+    {
+      "parameterNumber": 520,
+      "parameterName": "PM Bus Reg Kd",
+      "parameterValue": "2"
+    },
+    {
+      "parameterNumber": 521,
+      "parameterName": "Freq 1 Kp",
+      "parameterValue": "1000"
+    },
+    {
+      "parameterNumber": 522,
+      "parameterName": "Freq 1 Ki",
+      "parameterValue": "100"
+    },
+    {
+      "parameterNumber": 523,
+      "parameterName": "Freq 2 Kp",
+      "parameterValue": "1000"
+    },
+    {
+      "parameterNumber": 524,
+      "parameterName": "Freq 2 Ki",
+      "parameterValue": "100"
+    },
+    {
+      "parameterNumber": 525,
+      "parameterName": "Freq 3 Kp",
+      "parameterValue": "1000"
+    },
+    {
+      "parameterNumber": 526,
+      "parameterName": "Freq 3 Ki",
+      "parameterValue": "100"
+    },
+    {
+      "parameterNumber": 527,
+      "parameterName": "PM FWKn 1 Kp",
+      "parameterValue": "350"
+    },
+    {
+      "parameterNumber": 528,
+      "parameterName": "PM FWKn 2 Kp",
+      "parameterValue": "300"
+    },
+    {
+      "parameterNumber": 529,
+      "parameterName": "PM Control Cfg",
+      "parameterValue": "0000000000000111"
+    },
+    {
+      "parameterNumber": 530,
+      "parameterName": "Boost Select",
+      "parameterValue": "7"
+    },
+    {
+      "parameterNumber": 531,
+      "parameterName": "Start Boost",
+      "parameterValue": "25"
+    },
+    {
+      "parameterNumber": 532,
+      "parameterName": "Break Voltage",
+      "parameterValue": "250"
+    },
+    {
+      "parameterNumber": 533,
+      "parameterName": "Break Frequency",
+      "parameterValue": "150"
+    },
+    {
+      "parameterNumber": 534,
+      "parameterName": "Maximum Voltage",
+      "parameterValue": "460"
+    },
+    {
+      "parameterNumber": 535,
+      "parameterName": "Motor Fdbk Type",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 536,
+      "parameterName": "Encoder PPR",
+      "parameterValue": "1024"
+    },
+    {
+      "parameterNumber": 537,
+      "parameterName": "Pulse In Scale",
+      "parameterValue": "64"
+    },
+    {
+      "parameterNumber": 538,
+      "parameterName": "Ki Speed Loop",
+      "parameterValue": "20"
+    },
+    {
+      "parameterNumber": 539,
+      "parameterName": "Kp Speed Loop",
+      "parameterValue": "5"
+    },
+    {
+      "parameterNumber": 540,
+      "parameterName": "Var PWM Disable",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 541,
+      "parameterName": "Auto Rstrt Tries",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 542,
+      "parameterName": "Auto Rstrt Delay",
+      "parameterValue": "10"
+    },
+    {
+      "parameterNumber": 543,
+      "parameterName": "Start At PowerUp",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 544,
+      "parameterName": "Reverse Disable",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 545,
+      "parameterName": "Flying Start En",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 546,
+      "parameterName": "FlyStrt CurLimit",
+      "parameterValue": "65"
+    },
+    {
+      "parameterNumber": 547,
+      "parameterName": "Compensation",
+      "parameterValue": "1"
+    },
+    {
+      "parameterNumber": 548,
+      "parameterName": "Power Loss Mode",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 549,
+      "parameterName": "Half Bus Enable",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 550,
+      "parameterName": "Bus Reg Enable",
+      "parameterValue": "1"
+    },
+    {
+      "parameterNumber": 551,
+      "parameterName": "Fault Clear",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 552,
+      "parameterName": "Program Lock",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 553,
+      "parameterName": "Program Lock Mod",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 554,
+      "parameterName": "Drv Ambient Sel",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 555,
+      "parameterName": "Reset Meters",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 556,
+      "parameterName": "Text Scroll",
+      "parameterValue": "2"
+    },
+    {
+      "parameterNumber": 557,
+      "parameterName": "Out Phas Loss En",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 558,
+      "parameterName": "Positioning Mode",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 559,
+      "parameterName": "Counts Per Unit",
+      "parameterValue": "4096"
+    },
+    {
+      "parameterNumber": 560,
+      "parameterName": "Enh Control Word",
+      "parameterValue": "0000000000000000"
+    },
+    {
+      "parameterNumber": 561,
+      "parameterName": "Home Save",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 562,
+      "parameterName": "Find Home Freq",
+      "parameterValue": "100"
+    },
+    {
+      "parameterNumber": 563,
+      "parameterName": "Find Home Dir",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 564,
+      "parameterName": "Encoder Pos Tol",
+      "parameterValue": "100"
+    },
+    {
+      "parameterNumber": 565,
+      "parameterName": "Pos Reg Filter",
+      "parameterValue": "8"
+    },
+    {
+      "parameterNumber": 566,
+      "parameterName": "Pos Reg Gain",
+      "parameterValue": "30"
+    },
+    {
+      "parameterNumber": 567,
+      "parameterName": "Max Traverse",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 568,
+      "parameterName": "Traverse Inc",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 569,
+      "parameterName": "Traverse Dec",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 570,
+      "parameterName": "P Jump",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 571,
+      "parameterName": "Sync Time",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 572,
+      "parameterName": "Speed Ratio",
+      "parameterValue": "100"
+    },
+    {
+      "parameterNumber": 573,
+      "parameterName": "Mtr Options Cfg",
+      "parameterValue": "0000000000000011"
+    },
+    {
+      "parameterNumber": 574,
+      "parameterName": "RdyBit Mode Cfg",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 575,
+      "parameterName": "Flux Braking En",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 576,
+      "parameterName": "Phase Loss Level",
+      "parameterValue": "250"
+    },
+    {
+      "parameterNumber": 589,
+      "parameterName": "PM Algor Sel",
+      "parameterValue": "0"
+    },
+    {
+      "parameterNumber": 684,
+      "parameterName": "EN Addr Src",
+      "parameterValue": "1"
+    },
+    {
+      "parameterNumber": 685,
+      "parameterName": "EN Rate Act",
+      "parameterValue": "3"
+    },
+    {
+      "parameterNumber": 686,
+      "parameterName": "DSI I/O Act",
+      "parameterValue": "0000000000000001"
+    }
+  ]
+}
