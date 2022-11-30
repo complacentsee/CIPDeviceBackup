@@ -3,6 +3,7 @@ using System.Net.NetworkInformation;
 using Sres.Net.EEIP;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System.CommandLine;
 
 namespace powerFlexBackup
 {
@@ -47,6 +48,9 @@ namespace powerFlexBackup
             if (!System.IO.File.Exists(filePath)){
                 System.IO.Directory.CreateDirectory(filePath);
             }
+
+            Drive.removeNonRecordedDriveParameters();
+            Drive.removeDefaultDriveParameters();
 
             File.WriteAllText(filePath + fileName, JsonConvert.SerializeObject(Drive.getIdentityObject(),Formatting.Indented));
             File.AppendAllText(filePath + fileName, Environment.NewLine);

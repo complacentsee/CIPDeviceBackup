@@ -1,12 +1,14 @@
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using powerFlexBackup.powerFlexDrive.DriveParameterObjects;
+
 namespace powerFlexBackup.powerFlexDrive
 {
 
     public abstract class powerFlexDrive
     {
         private IdentityObject? identityObject;
-        private DriveParameterList? DriveParameterList;
+        private driveParameterObject? parameterObject;
         private Sres.Net.EEIP.EEIPClient? eeipClient;
         private String? driveAddress;
 
@@ -27,6 +29,7 @@ namespace powerFlexBackup.powerFlexDrive
                                                 eeipClient);
 
                 default:
+                //FIXME: Application should close here with information about the device type
                     return new PowerFlex525(driveAddress, 
                                                 identityObject, 
                                                 eeipClient);     
@@ -54,66 +57,86 @@ namespace powerFlexBackup.powerFlexDrive
             this.driveAddress = driveAddress;
         }
 
-        public void setDriveDriveParameterList (DriveParameterList DriveParameterList){
-            this.DriveParameterList = DriveParameterList;
+        public void setDriveParameterList (List<DriveParameter> DriveParameterList){
+            this.parameterObject.ParameterList = DriveParameterList;
         }
 
-        public void removeNonRecordedDriveParameterList (){
-            this.DriveParameterList.driveParameters.RemoveAll(x => x.recordValue == false);
+        public void setInstanceAttribute(List<InstanceAttribute> InstanceAttribute){
+            this.parameterObject.instanceAttributes = InstanceAttribute;
         }
 
-        public DriveParameterList getDriveDriveParameterList (){
-            return this.DriveParameterList;
+        public void setDriveParameterClassID(int ClassID){
+            this.parameterObject.ClassID = ClassID;
+        }
+
+        public int getDriveParameterClassID(){
+            return this.parameterObject.ClassID;
+        }
+
+        public void initializeDriveParameterObject (){
+            this.parameterObject = new driveParameterObject();
+        }
+
+        public void removeNonRecordedDriveParameters (){
+            this.parameterObject.ParameterList.RemoveAll(x => x.recordValue == false);
+        }
+        public void removeDefaultDriveParameters (){
+            this.parameterObject.ParameterList.RemoveAll(x => x.defaultParameterValue.Equals(x.parameterValue));
+        }
+
+        public List<DriveParameter> getDriveDriveParameterList (){
+            return this.parameterObject.ParameterList;
         }
 
         public IdentityObject getIdentityObject()
         {
-            return identityObject;
+            return this.identityObject;
+        }
+
+        public int getAttributeIDfromString(String attributeName)
+        {
+            return parameterObject.instanceAttributes.Find(x => x.Name.Equals(attributeName)).AttributeID;
         }
 
         public void getDriveParameterValues()
         {
-            if(DriveParameterList.driveParameters != null){
-                foreach(DriveParameter driveParameter in DriveParameterList.driveParameters)
+            if(parameterObject.ParameterList != null){
+                foreach(DriveParameter Parameter in parameterObject.ParameterList)
                     {
-                        if(driveParameter.recordValue){
-                            if(driveParameter.parameterType is null)
-                                driveParameter.parameterType = readDriveParameterType(driveParameter.parameterNumber);
+                        if(Parameter.recordValue){
+                            if(Parameter.parameterType is null)
+                                Parameter.parameterType = readDriveParameterType(Parameter.parameterNumber);
 
-                            byte[] parameterValue = readDriveParameterValue(driveParameter.parameterNumber);
-                            driveParameter.parameterValue = getParameterValuefromBytes(parameterValue,driveParameter.parameterType);
-                            Globals.logger.LogDebug(JsonConvert.SerializeObject(driveParameter,Formatting.Indented));
+                            byte[] parameterValue = readDriveParameterValue(Parameter.parameterNumber);
+                            Parameter.parameterValue = getParameterValuefromBytes(parameterValue,Parameter.parameterType);
+
+                            // byte[] defaultParameterValue = readDriveParameterDefaultValue(Parameter.parameterNumber);
+                            // Parameter.defaultParameterValue = getParameterValuefromBytes(defaultParameterValue,Parameter.parameterType);
+
+                            Globals.logger.LogDebug(JsonConvert.SerializeObject(Parameter,Formatting.Indented));
                         }
                     }
             }
             return;
         }
 
-        public void getDriveParameterValuesParallel()
-        {
-            if(DriveParameterList.driveParameters != null){
-                Parallel.ForEach(DriveParameterList.driveParameters, new ParallelOptions { MaxDegreeOfParallelism = 5}, driveParameter =>
-                    {
-                        if(driveParameter.parameterType is null)
-                            driveParameter.parameterType = readDriveParameterType(driveParameter.parameterNumber);
-
-                        byte[] parameterValue = readDriveParameterValue(driveParameter.parameterNumber);
-                        driveParameter.parameterValue = getParameterValuefromBytes(parameterValue,driveParameter.parameterType);
-                        Console.WriteLine(driveParameter.parameterNumber + ": " + driveParameter.parameterName + " : " + driveParameter.parameterValue + " : " + BitConverter.ToString(driveParameter.parameterType));
-                    });
-            }
-            return;
-        }
 
         private byte[] readDriveParameterValue(int parameterNumber)
         {
-            return eeipClient.GetAttributeSingle(0x0F,parameterNumber, 1);
-        }
-        private byte[] readDriveParameterType(int parameterNumber)
-        {
-            return eeipClient.GetAttributeSingle(0x0F,parameterNumber, 5);;
+            return this.eeipClient.GetAttributeSingle(getDriveParameterClassID(),parameterNumber, getAttributeIDfromString("Parameter Value"));
         }
 
+        private byte[] readDriveParameterDefaultValue(int parameterNumber)
+        {
+            return this.eeipClient.GetAttributeSingle(getDriveParameterClassID(),parameterNumber, getAttributeIDfromString("Default Value"));
+        }
+
+        private byte[] readDriveParameterType(int parameterNumber)
+        {
+            return this.eeipClient.GetAttributeSingle(getDriveParameterClassID(),parameterNumber, getAttributeIDfromString("Data Type"));;
+        }
+        //Each drive class should have a method to convert the returned bytes to the correct data type.
+        //FIXME: Should this be a callback function?
         public abstract string getParameterValuefromBytes(byte[] parameterValueBytes, byte[] parameterType);
     }
 }
