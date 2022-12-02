@@ -1,17 +1,17 @@
 using Newtonsoft.Json;
-namespace powerFlexBackup.powerFlexDrive.DriveParameterObjects
+namespace powerFlexBackup.cipdevice.deviceParameterObjects
 {
-    public class DriveParameter
+    public class DeviceParameter
     {
         public int parameterNumber { get; set; }
         public string parameterName { get; set; }
         public string parameterValue { get; set; }
         public string defaultParameterValue { get; set; }
         public bool recordValue { get; set; }
-        [JsonIgnore]
+//        [JsonIgnore]
         public byte[]? parameterType { get; set; }
 
-        public DriveParameter()
+        public DeviceParameter()
         {
         }
         

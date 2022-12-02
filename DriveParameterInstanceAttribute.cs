@@ -1,4 +1,4 @@
-namespace powerFlexBackup.powerFlexDrive.DriveParameterObjects
+namespace powerFlexBackup.cipdevice.deviceParameterObjects
 {
     public class InstanceAttribute
     {

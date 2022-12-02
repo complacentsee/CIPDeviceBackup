@@ -3,7 +3,9 @@ using System.Net.NetworkInformation;
 using Sres.Net.EEIP;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using powerFlexBackup.cipdevice;
 using System.CommandLine;
+
 
 namespace powerFlexBackup
 {
@@ -37,24 +39,26 @@ namespace powerFlexBackup
            
             EEIPClient eeipClient = new Sres.Net.EEIP.EEIPClient();
 
-            powerFlexDrive.powerFlexDrive Drive = powerFlexDrive.powerFlexDrive.getDrivefromAddress(address, eeipClient);
+            //Create CIPDeviceFactory
+            CIPDeviceFactory cipDeviceFactory = new CIPDeviceFactory();
+            CIPDevice cipDevice =  cipDeviceFactory.getDevicefromAddress(address, eeipClient);
 
             String filePath = @"C:\powerflexdrivebackup0.0.1\temporary\";
             String fileName = @"driveparameterbackup.txt";
             Globals.logger.LogInformation ("Getting drive parameters from upload...");
 
-            Drive.getDriveParameterValues();
+            cipDevice.getDriveParameterValues();
             Globals.logger.LogInformation ("Drive uploaded completed.");
             if (!System.IO.File.Exists(filePath)){
                 System.IO.Directory.CreateDirectory(filePath);
             }
 
-            Drive.removeNonRecordedDriveParameters();
-            Drive.removeDefaultDriveParameters();
+            cipDevice.removeNonRecordedDriveParameters();
+            cipDevice.removeDefaultDriveParameters();
 
-            File.WriteAllText(filePath + fileName, JsonConvert.SerializeObject(Drive.getIdentityObject(),Formatting.Indented));
+            File.WriteAllText(filePath + fileName, JsonConvert.SerializeObject(cipDevice.getIdentityObject(),Formatting.Indented));
             File.AppendAllText(filePath + fileName, Environment.NewLine);
-            File.AppendAllText(filePath + fileName, JsonConvert.SerializeObject(Drive.getDriveDriveParameterList(),Formatting.Indented));
+            File.AppendAllText(filePath + fileName, JsonConvert.SerializeObject(cipDevice.getDriveDriveParameterList(),Formatting.Indented));
             Globals.logger.LogInformation ("File saved to {0}", filePath + fileName);
             eeipClient.UnRegisterSession();
             Thread.Sleep(1000);

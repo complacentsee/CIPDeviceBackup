@@ -1,17 +1,14 @@
 using Newtonsoft.Json;
-using powerFlexBackup.powerFlexDrive.DriveParameterObjects;
+using powerFlexBackup.cipdevice.deviceParameterObjects;
 
-namespace powerFlexBackup.powerFlexDrive
+namespace powerFlexBackup.cipdevice
 {
-    public class PowerFlex525 : powerFlexDrive{
-        public PowerFlex525(String address, IdentityObject identityObject, Sres.Net.EEIP.EEIPClient eeipClient)
+    public class CIPDevice_PowerFlex525 : CIPDevice{
+        public CIPDevice_PowerFlex525(String driveAddress, IdentityObject identityObject, Sres.Net.EEIP.EEIPClient eeipClient) :
+            base(driveAddress, identityObject, eeipClient)
         {
-            setDriveAddress(address);
-            setEEIPClient(eeipClient);
-            setDriveIdentiyObject(identityObject);
-            initializeDriveParameterObject();
             setDriveParameterClassID(0x0F);
-            setDriveParameterList(JsonConvert.DeserializeObject<List<DriveParameter>>(parameterListJSON));    
+            setDriveParameterList(JsonConvert.DeserializeObject<List<DeviceParameter>>(parameterListJSON));    
             setInstanceAttribute(JsonConvert.DeserializeObject<List<InstanceAttribute>>(instanceAttributeJSON));    
         }
 
@@ -23,6 +20,7 @@ namespace powerFlexBackup.powerFlexDrive
         0xC7 = UINT (16-bits)
         0xCA = REAL (32-bits)
         0xD2 = WORD (16-bits) */
+        
         //FIXME: Should this be a list that we can look up the converion for each drive? Then the method can exist in the base class.
         public const byte DriveSINT = 0xC2;
         public const byte DriveINT = 0xC3;

@@ -1,47 +1,31 @@
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using powerFlexBackup.powerFlexDrive.DriveParameterObjects;
+using powerFlexBackup.cipdevice.deviceParameterObjects;
 
-namespace powerFlexBackup.powerFlexDrive
+namespace powerFlexBackup.cipdevice
 {
 
-    public abstract class powerFlexDrive
+    public abstract class CIPDevice
     {
-        private IdentityObject? identityObject;
-        private driveParameterObject? parameterObject;
-        private Sres.Net.EEIP.EEIPClient? eeipClient;
-        private String? driveAddress;
+        private IdentityObject identityObject;
+        private DeviceParameterObject parameterObject;
+        private Sres.Net.EEIP.EEIPClient eeipClient;
+        private String driveAddress;
 
-        public static powerFlexDrive getDrivefromAddress(String driveAddress, Sres.Net.EEIP.EEIPClient eeipClient){
-             
-            eeipClient.RegisterSession(driveAddress);
-            IdentityObject identityObject = getDriveIdentiyObjectfromAddress(driveAddress, eeipClient);
-            Globals.logger.LogInformation ("Connected to device {0}, device reporting as {1}", driveAddress, identityObject.ProductName);
-
-            //use case statement to determine which device type is being used         
-            switch (identityObject.DeviceType)
-            {
-                case 150:
-                    // PowerFlex 525
-                    Globals.logger.LogInformation ("Identified drive as PowerFlex525 or compatable.");
-                    return new PowerFlex525(driveAddress, 
-                                                identityObject, 
-                                                eeipClient);
-
-                default:
-                //FIXME: Application should close here with information about the device type
-                    return new PowerFlex525(driveAddress, 
-                                                identityObject, 
-                                                eeipClient);     
-            }
-
+        public CIPDevice(String driveAddress, IdentityObject identityObject, Sres.Net.EEIP.EEIPClient eeipClient)
+        {
+            this.driveAddress = driveAddress;
+            this.identityObject = identityObject;
+            this.eeipClient = eeipClient;
+            this.eeipClient.RegisterSession(driveAddress);
+            var rawIdentityObject = getRawIdentiyObject();
+            this.identityObject = identityObject.getIdentityObjectfromResponse(rawIdentityObject);
+            this.parameterObject = new DeviceParameterObject();
         }
-
-        private static IdentityObject getDriveIdentiyObjectfromAddress(String driveAddress, Sres.Net.EEIP.EEIPClient eeipClient)
+        
+        private static void registerDeviceAddress(String driveAddress, Sres.Net.EEIP.EEIPClient eeipClient)
         {
             eeipClient.RegisterSession(driveAddress);
-            byte[] response = eeipClient.GetAttributeAll(0x01, 1);
-            return IdentityObject.getIdentityObjectfromResponse(response);
         }
 
         public void setDriveIdentiyObject(IdentityObject identityObject)
@@ -50,14 +34,14 @@ namespace powerFlexBackup.powerFlexDrive
         }
 
         public void setEEIPClient (Sres.Net.EEIP.EEIPClient Client){
-            this.eeipClient = Client;
+            eeipClient = Client;
         }
 
         public void setDriveAddress (string driveAddress){
             this.driveAddress = driveAddress;
         }
 
-        public void setDriveParameterList (List<DriveParameter> DriveParameterList){
+        public void setDriveParameterList (List<DeviceParameter> DriveParameterList){
             this.parameterObject.ParameterList = DriveParameterList;
         }
 
@@ -74,7 +58,7 @@ namespace powerFlexBackup.powerFlexDrive
         }
 
         public void initializeDriveParameterObject (){
-            this.parameterObject = new driveParameterObject();
+            this.parameterObject = new DeviceParameterObject();
         }
 
         public void removeNonRecordedDriveParameters (){
@@ -84,7 +68,7 @@ namespace powerFlexBackup.powerFlexDrive
             this.parameterObject.ParameterList.RemoveAll(x => x.defaultParameterValue.Equals(x.parameterValue));
         }
 
-        public List<DriveParameter> getDriveDriveParameterList (){
+        public List<DeviceParameter> getDriveDriveParameterList (){
             return this.parameterObject.ParameterList;
         }
 
@@ -101,7 +85,7 @@ namespace powerFlexBackup.powerFlexDrive
         public void getDriveParameterValues()
         {
             if(parameterObject.ParameterList != null){
-                foreach(DriveParameter Parameter in parameterObject.ParameterList)
+                foreach(DeviceParameter Parameter in parameterObject.ParameterList)
                     {
                         if(Parameter.recordValue){
                             if(Parameter.parameterType is null)
@@ -118,6 +102,11 @@ namespace powerFlexBackup.powerFlexDrive
                     }
             }
             return;
+        }
+
+        private byte[] getRawIdentiyObject()
+        {
+            return this.eeipClient.GetAttributeAll(0x01, 1);
         }
 
 
