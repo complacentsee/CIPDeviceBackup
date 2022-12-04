@@ -9,24 +9,27 @@ namespace powerFlexBackup
     public class CIPDeviceFactory
     {
         CIPDeviceDictionary DeviceDictionary;
-        public CIPDeviceFactory()
+        Sres.Net.EEIP.EEIPClient eeipClient;
+        public CIPDeviceFactory(Sres.Net.EEIP.EEIPClient eeipClient)
         {
             DeviceDictionary = new CIPDeviceDictionary();
+            this.eeipClient = eeipClient;
         }
 
-        public CIPDevice getDevicefromAddress(String driveAddress, Sres.Net.EEIP.EEIPClient eeipClient){
+
+        public CIPDevice getDevicefromAddress(String driveAddress){
             
-            eeipClient.RegisterSession(driveAddress);
-            var rawIdentityObject = getRawIdentiyObjectfromSession(eeipClient);
+            this.eeipClient.RegisterSession(driveAddress);
+            var rawIdentityObject = getRawIdentiyObjectfromSession(this.eeipClient);
             var deviceType = getIdentiyObjectDeviceTypefromRaw(rawIdentityObject);
             var productCode = getIdentiyObjectProductCodefromRaw(rawIdentityObject);
             var identityObjectClassString = DeviceDictionary.getIdentityObjectClass(deviceType, productCode);
-            Type DeviceClass = Type.GetType(DeviceDictionary.getCIPDeviceClass(deviceType, productCode));
-            Type IdentityObjectClass = Type.GetType(identityObjectClassString);
+            var DeviceClass = Type.GetType(DeviceDictionary.getCIPDeviceClass(deviceType, productCode));
+            var IdentityObjectClass = Type.GetType(identityObjectClassString);
 
             var identityObject = (IdentityObject)Activator.CreateInstance(IdentityObjectClass);
 
-            eeipClient.UnRegisterSession();
+            this.eeipClient.UnRegisterSession();
 
             return (CIPDevice)Activator.CreateInstance(DeviceClass, new object[] {driveAddress, identityObject, eeipClient});
         }

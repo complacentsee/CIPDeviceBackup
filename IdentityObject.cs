@@ -14,12 +14,13 @@ namespace powerFlexBackup.cipdevice
         public UInt16 DeviceType;
         public UInt16 ProductCode;
         public Revision revision;
-        public UInt32 SerialNumber;
+        public String SerialNumber = "";
         public String ProductName = "";
 
         [JsonIgnore]
         public UInt16 Status;
 
         public abstract IdentityObject getIdentityObjectfromResponse(byte[] IdentityObjectBytes);
+
     }
 }

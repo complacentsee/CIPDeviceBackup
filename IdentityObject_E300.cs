@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace powerFlexBackup.cipdevice
 {
-    public class IdentityObject_PowerFlex525 : IdentityObject
+    public class IdentityObject_E300 : IdentityObject
     {
         public override IdentityObject_PowerFlex525 getIdentityObjectfromResponse(byte[] IdentityObjectBytes)
         {
@@ -31,6 +31,8 @@ namespace powerFlexBackup.cipdevice
 
             var SerialNumber = CIPDeviceHelper.ReverseBytes((new ArraySegment<byte>(IdentityObjectBytes, 10, 4)).ToArray());
             IdentityObject.SerialNumber = Convert.ToHexString(SerialNumber);  
+            Globals.logger.LogDebug ("SerialNumber: {0:X}", IdentityObject.SerialNumber);
+
             Globals.logger.LogDebug ("SerialNumber: {0:X}", IdentityObject.SerialNumber);
 
             IdentityObject.ProductName = System.Text.Encoding.ASCII.GetString(IdentityObjectBytes, 15, Convert.ToInt32(IdentityObjectBytes[14]));

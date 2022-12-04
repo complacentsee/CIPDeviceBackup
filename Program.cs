@@ -40,31 +40,41 @@ namespace powerFlexBackup
             EEIPClient eeipClient = new Sres.Net.EEIP.EEIPClient();
 
             //Create CIPDeviceFactory
-            CIPDeviceFactory cipDeviceFactory = new CIPDeviceFactory();
-            CIPDevice cipDevice =  cipDeviceFactory.getDevicefromAddress(address, eeipClient);
+            CIPDeviceFactory cipDeviceFactory = new CIPDeviceFactory(eeipClient);
+            CIPDevice cipDevice =  cipDeviceFactory.getDevicefromAddress(address);
 
             String filePath = @"C:\powerflexdrivebackup0.0.1\temporary\";
             String fileName = @"driveparameterbackup.txt";
             Globals.logger.LogInformation ("Getting drive parameters from upload...");
 
-            cipDevice.getDriveParameterValues();
-            Globals.logger.LogInformation ("Drive uploaded completed.");
+
+            // File.WriteAllText(filePath + fileName, JsonConvert.SerializeObject(cipDevice.getDeviceParameterList(),Formatting.Indented));
+ //           cipDevice.getAllDeviceParameters();
+
+
+            cipDevice.getDeviceParameterValues();
+
+            Globals.outputAllRecords = true;
+
+            Globals.logger.LogInformation ("Device uploaded completed.");
             if (!System.IO.File.Exists(filePath)){
                 System.IO.Directory.CreateDirectory(filePath);
             }
 
-            cipDevice.removeNonRecordedDriveParameters();
-            cipDevice.removeDefaultDriveParameters();
+            cipDevice.removeNonRecordedDeviceParameters();
+            cipDevice.removeDefaultDeviceParameters();
 
             File.WriteAllText(filePath + fileName, JsonConvert.SerializeObject(cipDevice.getIdentityObject(),Formatting.Indented));
             File.AppendAllText(filePath + fileName, Environment.NewLine);
-            File.AppendAllText(filePath + fileName, JsonConvert.SerializeObject(cipDevice.getDriveDriveParameterList(),Formatting.Indented));
+            File.AppendAllText(filePath + fileName, JsonConvert.SerializeObject(cipDevice.getDeviceParameterList(),Formatting.Indented));
             Globals.logger.LogInformation ("File saved to {0}", filePath + fileName);
             eeipClient.UnRegisterSession();
             Thread.Sleep(1000);
             Environment.Exit(0);
         }
 
+
+    //Fixme: this should be moved to the factory class. 
     private static bool IsIPv4(string address)
     {
         var octets = address.Split('.');
@@ -85,12 +95,11 @@ namespace powerFlexBackup
                 || !q.ToString().Length.Equals(octet.Length) 
                 || q < 0 
                 || q > 255) { return false; }
-
         }
-
         return true;
     }
 
+    //Fixme: this should be moved to the factory class. 
     public static bool validateNetworkConnection(string address)
     {
         Ping pingSender = new Ping ();
@@ -130,5 +139,7 @@ namespace powerFlexBackup
     );
     // create a logger
     public static ILogger logger = loggerFactory.CreateLogger<Program>();
+
+    public static bool outputAllRecords = true;
     }
 }
