@@ -4,12 +4,12 @@ using powerFlexBackup.cipdevice.deviceParameterObjects;
 namespace powerFlexBackup.cipdevice
 {
     public class CIPDevice_PowerFlex70 : CIPDevice{
-        public CIPDevice_PowerFlex70(String driveAddress, IdentityObject identityObject, Sres.Net.EEIP.EEIPClient eeipClient) :
-            base(driveAddress, identityObject, eeipClient)
+        public CIPDevice_PowerFlex70(String deviceAddress, IdentityObject identityObject, Sres.Net.EEIP.EEIPClient eeipClient) :
+            base(deviceAddress, identityObject, eeipClient)
         {
             setDeviceParameterClassID(0x0F);
-            setDeviceParameterList(JsonConvert.DeserializeObject<List<DeviceParameter>>(parameterListJSON));     
-            setInstanceAttribute(JsonConvert.DeserializeObject<List<InstanceAttribute>>(instanceAttributeJSON));      
+            setDeviceParameterList(JsonConvert.DeserializeObject<List<DeviceParameter>>(parameterListJSON)!);     
+            setInstanceAttribute(JsonConvert.DeserializeObject<List<InstanceAttribute>>(instanceAttributeJSON)!);      
         }
 
         /* Process the parameter from a bytearray to an int based on type
@@ -4917,30 +4917,5 @@ namespace powerFlexBackup.cipdevice
                                 'type': '0Q==',
                             }
                             ]";
-
-// Fixme: Decide if we should use an enumeration for the parameter types.
-                public enum instanceAttribute : int{
-                    ParameterVaue = 1,
-                    LinkPathSize = 2,
-                    LinkPath = 3,
-                    Discriptor = 4,
-                    DataType = 5,
-                    DataSize = 6,
-                    ParameterNameString = 7,
-                    UnitsString = 8,
-                    HelpString = 9,
-                    MinimumValue = 10,
-                    MaximumValue = 11,
-                    DefaultValue = 12,
-                    ScalingMultiplier = 13,
-                    ScalingDivsor = 14,
-                    ScalingBase = 15,
-                    ScalingOffset = 16,
-                    MultiplierLink = 17,
-                    DivisorLink = 18,
-                    BaseLink = 19,
-                    OffsetLink = 20,
-                    DecimalPrecision = 21
-                }
     }
 }

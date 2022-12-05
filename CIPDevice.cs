@@ -79,7 +79,7 @@ namespace powerFlexBackup.cipdevice
 
         public int getAttributeIDfromString(String attributeName)
         {
-            return parameterObject.instanceAttributes.Find(x => x.Name.Equals(attributeName)).AttributeID;
+            return parameterObject.instanceAttributes.Find(x => x.Name.Equals(attributeName))!.AttributeID;
         }
 
         public void getDeviceParameterValues()
@@ -100,13 +100,13 @@ namespace powerFlexBackup.cipdevice
                             Parameter.valueHex = Convert.ToHexString(parameterValue);
                             Parameter.typeHex = Convert.ToHexString(Parameter.type);
 
-                                            Console.WriteLine("Parameter #{0}, Value: {1}, ValueByte: {2}, Type: {3}, Size: {4}", Parameter.number, 
-                                            Parameter.value, 
-                                            Parameter.valueHex, 
-                                            Parameter.typeHex,
-                                            "");
-
-                            Globals.logger.LogDebug(JsonConvert.SerializeObject(Parameter,Formatting.Indented));
+                            if(Globals.outputVerbose){
+                                Console.WriteLine("Parameter #{0}, Value: {1}, ValueByte: {2}, Type: {3}", 
+                                    Parameter.number, 
+                                    Parameter.value, 
+                                    Parameter.valueHex, 
+                                    Parameter.typeHex);
+                            }
                         }
                     }
             }
@@ -122,21 +122,22 @@ namespace powerFlexBackup.cipdevice
                 var parameterName = readDeviceParameterName(parameterNumber);
                 var parameterType = readDeviceParameterType(parameterNumber);
                 var parameterValue = readDeviceParameterValue(parameterNumber);
-                var parameterSize = readDeviceParameterSize(parameterNumber);
                 var defaultParameterValue = readDeviceParameterDefaultValue(parameterNumber);
                 var parameterValueString = getParameterValuefromBytes(parameterValue,parameterType);
-                Console.WriteLine("Parameter #{0}, Value: {1}, ValueByte: {2}, Type: {3}, Size: {4}", parameterNumber, 
-                                            parameterValueString, 
-                                            Convert.ToHexString(parameterValue), 
-                                            Convert.ToHexString(parameterType),
-                                            Convert.ToHexString(parameterSize));
-                var defaultParameterValueString = getParameterValuefromBytes(defaultParameterValue,parameterType);
 
-                var parameter = new DeviceParameter(parameterNumber,parameterName,parameterValueString,Convert.ToHexString(parameterType),true,parameterType, parameterSize);
+                if(Globals.outputVerbose){
+                    Console.WriteLine("Parameter #{0}, Name: {1}, Value(Bytes): {2}, Type: {3}", 
+                        parameterNumber, 
+                        parameterName, 
+                        Convert.ToHexString(parameterValue), 
+                        Convert.ToHexString(parameterType));
+                }
+
+
+                var parameter = new DeviceParameter(parameterNumber,parameterName,parameterValueString,Convert.ToHexString(parameterType),true,parameterType);
                 parameter.valueHex = Convert.ToHexString(parameterValue);
                 parameter.typeHex = Convert.ToHexString(parameterType);
                 parameterObject.ParameterList.Add(parameter);
-                //Globals.logger.LogInformation(JsonConvert.SerializeObject(parameter,Formatting.Indented));
             }
             return;
         }
@@ -181,7 +182,7 @@ namespace powerFlexBackup.cipdevice
         }
 
         //Each Device class should have a method to convert the returned bytes to the correct data type.
-        //FIXME: Should this be a callback function?
+        //This could be done more elgeantly. 
         public abstract string getParameterValuefromBytes(byte[] parameterValueBytes, byte[] type);
 
     }

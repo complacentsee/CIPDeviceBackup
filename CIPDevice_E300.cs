@@ -4,16 +4,15 @@ using powerFlexBackup.cipdevice.deviceParameterObjects;
 namespace powerFlexBackup.cipdevice
 {
     public class CIPDevice_E300 : CIPDevice{
-        public CIPDevice_E300(String driveAddress, IdentityObject identityObject, Sres.Net.EEIP.EEIPClient eeipClient) :
-            base(driveAddress, identityObject, eeipClient)
+        public CIPDevice_E300(String deviceAddress, IdentityObject identityObject, Sres.Net.EEIP.EEIPClient eeipClient) :
+            base(deviceAddress, identityObject, eeipClient)
         {
             Console.WriteLine("CIPDevice_E300 constructor");
             setDeviceParameterClassID(0x0F);
-            setDeviceParameterList(JsonConvert.DeserializeObject<List<DeviceParameter>>(parameterListJSON));    
-            setInstanceAttribute(JsonConvert.DeserializeObject<List<InstanceAttribute>>(instanceAttributeJSON));    
+            setDeviceParameterList(JsonConvert.DeserializeObject<List<DeviceParameter>>(parameterListJSON)!);    
+            setInstanceAttribute(JsonConvert.DeserializeObject<List<InstanceAttribute>>(instanceAttributeJSON)!);    
         }
 
-        
         /* Process the parameter from a bytearray to an int based on type
         0xC1, BOOL
         0xC2, INT8

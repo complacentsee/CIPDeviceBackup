@@ -4,12 +4,12 @@ using powerFlexBackup.cipdevice.deviceParameterObjects;
 namespace powerFlexBackup.cipdevice
 {
     public class CIPDevice_193ETN : CIPDevice{
-        public CIPDevice_193ETN(String driveAddress, IdentityObject identityObject, Sres.Net.EEIP.EEIPClient eeipClient) :
-            base(driveAddress, identityObject, eeipClient)
+        public CIPDevice_193ETN(String deviceAddress, IdentityObject identityObject, Sres.Net.EEIP.EEIPClient eeipClient) :
+            base(deviceAddress, identityObject, eeipClient)
         {
             setDeviceParameterClassID(0x0F);
-            setDeviceParameterList(JsonConvert.DeserializeObject<List<DeviceParameter>>(parameterListJSON));    
-            setInstanceAttribute(JsonConvert.DeserializeObject<List<InstanceAttribute>>(instanceAttributeJSON));    
+            setDeviceParameterList(JsonConvert.DeserializeObject<List<DeviceParameter>>(parameterListJSON)!);    
+            setInstanceAttribute(JsonConvert.DeserializeObject<List<InstanceAttribute>>(instanceAttributeJSON)!);    
         }
 
         /* Process the parameter from a bytearray to an int based on type
@@ -17,13 +17,6 @@ namespace powerFlexBackup.cipdevice
         0xC6 - USINT
         0xC7 - UINT
         0xD2 - WORD */
-        
-        //FIXME: Should this be a list that we can look up the converion for each drive? Then the method can exist in the base class.
-        public const byte DeviceBOOL = 0xC1; 
-        public const byte DeviceUSINT = 0xC6;
-        public const byte DeviceUINT = 0xC7;
-        public const byte DeviceWORD = 0xD2; // 16 bit mask
-
         public override string getParameterValuefromBytes(byte[] parameterValueBytes, byte[] type)
         {
             switch (type[0])

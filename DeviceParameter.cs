@@ -8,13 +8,18 @@ namespace powerFlexBackup.cipdevice.deviceParameterObjects
         public string value { get; set; }
         public string defaultValue { get; set; }
         public bool record { get; set; }
-        public byte[] type { get; set; }
+        public byte[]? type { get; set; }
         public byte[]? size { get; set; }
         public string? valueHex { get; set; }
         public string? typeHex { get; set; }
 
         public DeviceParameter()
         {
+            this.number = 0;
+            this.name = "";
+            this.value = "";
+            this.defaultValue = "";
+            this.record = false;
         }
         public DeviceParameter(int number, string name, string value, string defaultValue, bool record, byte[] type)
         {
@@ -37,12 +42,12 @@ namespace powerFlexBackup.cipdevice.deviceParameterObjects
             this.size = size;
         }
         
-        // public bool ShouldSerializenumber() {return record | Globals.outputAllRecords;}
-        // public bool ShouldSerializename() {return record | Globals.outputAllRecords;}
-        // public bool ShouldSerializevalue() {return record | Globals.outputAllRecords;}
-        // public bool ShouldSerializedefaultValue() {return record | Globals.outputAllRecords;}
-        // public bool ShouldSerializerecord() {return false | Globals.outputAllRecords;}
-        // public bool ShouldSerializetype() {return false | Globals.outputAllRecords;}
-        // public bool ShouldSerializesize() {return false | Globals.outputAllRecords;}
+        public bool ShouldSerializenumber() {return record | Globals.outputAllRecords;}
+        public bool ShouldSerializename() {return record | Globals.outputAllRecords;}
+        public bool ShouldSerializevalue() {return record | Globals.outputAllRecords;}
+        public bool ShouldSerializedefaultValue() {return record | Globals.outputAllRecords;}
+        public bool ShouldSerializerecord() {return false | Globals.outputAllRecords;}
+        public bool ShouldSerializetype() {return false | Globals.outputAllRecords;}
+        public bool ShouldSerializesize() {return false | Globals.outputAllRecords;}
     }
 }

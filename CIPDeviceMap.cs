@@ -21,7 +21,9 @@ namespace powerFlexBackup.cipdevice{
         {
             this.CIPDeviceMap = new List<CIPDeviceMap>();
             
-            // FIXME: This should be read from a file
+            // TODO: We should create a generic device if the device isn't found. This could only be used with a 
+            // full parameter backup. Maybe the ParameterClass could be specified via commandline for those isntances? 
+            // TODO: Try to populate the list of supported devices automatically and print to console. 
             this.CIPDeviceMap.Add(new CIPDeviceMap(150, 
                                 9, 
                                 "powerFlexBackup.cipdevice.IdentityObject_PowerFlex525", 
@@ -44,11 +46,11 @@ namespace powerFlexBackup.cipdevice{
         }       
 
         public String getIdentityObjectClass(int deviceType, int productCode){
-            return this.CIPDeviceMap.Find(x => x.deviceType == deviceType && x.productCode == productCode).identityObjectClass;
+            return this.CIPDeviceMap.Find(x => x.deviceType == deviceType && x.productCode == productCode)!.identityObjectClass;
         }
 
         public String getCIPDeviceClass(int deviceType, int productCode){
-            return this.CIPDeviceMap.Find(x => x.deviceType == deviceType && x.productCode == productCode).CIPDeviceClass;
+            return this.CIPDeviceMap.Find(x => x.deviceType == deviceType && x.productCode == productCode)!.CIPDeviceClass;
         }
     }
 }

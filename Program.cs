@@ -1,11 +1,9 @@
-﻿using System.Text;
-using System.Net.NetworkInformation;
+﻿using System.Reflection;
 using Sres.Net.EEIP;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using powerFlexBackup.cipdevice;
 using System.CommandLine;
-
 
 namespace powerFlexBackup
 {
@@ -13,120 +11,128 @@ namespace powerFlexBackup
     {
         static void Main(string[] args)
         {
-            //parse commandline arguments into variables based on commandline flags
-            if(args[0] is null){
-                Globals.logger.LogError("First argment must be a valid IP Address");
+            var applicationVersion = Assembly.GetEntryAssembly()?.GetName()?.Version?.ToString();
+
+            String address = "";
+            FileInfo? outputFile = null;
+
+            //TODO: Try to populate the list of supported devices automatically and print to console. 
+            var rootCommand = new RootCommand(String.Format("Application to record Ethernet CIP device parameters and save to file." + 
+                                                            "\nVersion {0}", applicationVersion));
+
+            var hostOption = new Option<String?>(
+                name: "--host",
+                description: "The host to read and record parameters from."){ IsRequired = true };
+            rootCommand.AddOption(hostOption);  
+
+            var fileOption = new Option<FileInfo?>(
+                name: "--output",
+                description: "The file location to save the output.",
+                isDefault: true,
+                parseArgument: result =>
+                {
+                    if (result.Tokens.Count == 0)
+                    {
+                        return new FileInfo(@"devicebackups\parameterbackup.txt");
+                    }
+                    else
+                    {                    
+                        string filePath = result.Tokens.Single().Value;
+                        return new FileInfo(filePath);
+                    }
+                });
+                fileOption.AddAlias("-o");
+            rootCommand.AddOption(fileOption); 
+
+            var outputAllParametersOption = new Option<Boolean?>(
+                name: "--all",
+                description: "Collect and save all parameter values.");
+                outputAllParametersOption.AddAlias("-a");
+            rootCommand.AddOption(outputAllParametersOption);  
+
+            var outputVerboseOption = new Option<Boolean?>(
+                name: "--verbose",
+                description: "Print parameters and values to console while collecting.");
+                outputVerboseOption.AddAlias("-v");
+            rootCommand.AddOption(outputVerboseOption);  
+
+            var skipPingOption = new Option<Boolean?>(
+                name: "--noping",
+                description: "Skips pinging address prior to attempting connection. Useful for devices behind a firewalls with ICMP disabled.");
+            rootCommand.AddOption(skipPingOption); 
+
+            rootCommand.SetHandler((hostname, outputAllParameters, outputVerbose, skipPing, file) => 
+            { 
+                address = hostname!;
+
+                if(outputAllParameters == true)
+                    Globals.outputAllRecords = true;
+
+                if(outputVerbose == true)
+                    Globals.outputVerbose = true;
+
+                if(skipPing == true)
+                    Globals.skipPing = true;
+
+                outputFile = file;
+
+                mainProgram();
+            },
+            hostOption, outputAllParametersOption, outputVerboseOption, skipPingOption, fileOption);
+            
+            rootCommand.Invoke(args);
+
+            void mainProgram(){
+
+                EEIPClient eeipClient = new Sres.Net.EEIP.EEIPClient();
+                CIPDeviceFactory cipDeviceFactory = new CIPDeviceFactory(eeipClient);
+
+                try{
+                    CIPDevice cipDevice =  cipDeviceFactory.getDevicefromAddress(address);
+                    if(Globals.outputVerbose)
+                        Console.WriteLine("Getting device parameters from upload...");
+
+                    if(!Globals.outputAllRecords){       
+                        cipDevice.getDeviceParameterValues();             
+                        cipDevice.removeNonRecordedDeviceParameters();
+                        cipDevice.removeDefaultDeviceParameters();
+                    } else{
+                        cipDevice.getDeviceParameterValues();
+                    }
+
+                    if(Globals.outputVerbose)
+                        Console.WriteLine("Completed uploading device parameters.");
+
+                    if (!System.IO.File.Exists(outputFile!.Directory!.ToString())){
+                        System.IO.Directory.CreateDirectory(outputFile!.Directory!.ToString());
+                    }
+
+                    StreamWriter output = new StreamWriter(outputFile!.FullName);
+                    output.Write(JsonConvert.SerializeObject(cipDevice.getIdentityObject(),Formatting.Indented));
+                    output.WriteLine();
+                    output.Write(JsonConvert.SerializeObject(cipDevice.getDeviceParameterList(),Formatting.Indented));
+                    output.Close();
+                    Globals.logger.LogInformation ("File saved to {0}", outputFile!.FullName);
+                }
+                catch(Exception e){
+                    Globals.logger.LogError(e.Message);
+                    return;
+                } 
+
+                eeipClient.UnRegisterSession();
                 Thread.Sleep(250);
-                Environment.Exit(-1);
+                return;
+
             }
-
-            String address = args[0];
-
-            //Validate IP address
-            if(!IsIPv4(address)){
-                Globals.logger.LogError("Invalid IP Address");
-                Thread.Sleep(250);
-                Environment.Exit(-1);
-            }
-            Globals.logger.LogInformation ("Address {0} is valid. Validating connectivity...", address);
-
-            if(!validateNetworkConnection(address)){
-                Globals.logger.LogError("Unable to ping IP Address");
-                Thread.Sleep(250);
-                Environment.Exit(-1);
-            }
-            Globals.logger.LogInformation ("Ping succeeded to address: {0}", address);
-           
-            EEIPClient eeipClient = new Sres.Net.EEIP.EEIPClient();
-
-            //Create CIPDeviceFactory
-            CIPDeviceFactory cipDeviceFactory = new CIPDeviceFactory(eeipClient);
-            CIPDevice cipDevice =  cipDeviceFactory.getDevicefromAddress(address);
-
-            String filePath = @"C:\powerflexdrivebackup0.0.1\temporary\";
-            String fileName = @"driveparameterbackup.txt";
-            Globals.logger.LogInformation ("Getting drive parameters from upload...");
-
-
-            // File.WriteAllText(filePath + fileName, JsonConvert.SerializeObject(cipDevice.getDeviceParameterList(),Formatting.Indented));
- //           cipDevice.getAllDeviceParameters();
-
-
-            cipDevice.getDeviceParameterValues();
-
-            Globals.outputAllRecords = true;
-
-            Globals.logger.LogInformation ("Device uploaded completed.");
-            if (!System.IO.File.Exists(filePath)){
-                System.IO.Directory.CreateDirectory(filePath);
-            }
-
-            cipDevice.removeNonRecordedDeviceParameters();
-            cipDevice.removeDefaultDeviceParameters();
-
-            File.WriteAllText(filePath + fileName, JsonConvert.SerializeObject(cipDevice.getIdentityObject(),Formatting.Indented));
-            File.AppendAllText(filePath + fileName, Environment.NewLine);
-            File.AppendAllText(filePath + fileName, JsonConvert.SerializeObject(cipDevice.getDeviceParameterList(),Formatting.Indented));
-            Globals.logger.LogInformation ("File saved to {0}", filePath + fileName);
-            eeipClient.UnRegisterSession();
-            Thread.Sleep(1000);
-            Environment.Exit(0);
         }
-
-
-    //Fixme: this should be moved to the factory class. 
-    private static bool IsIPv4(string address)
-    {
-        var octets = address.Split('.');
-
-        // if we do not have 4 octets, return false
-        if (octets.Length!=4) return false;
-
-        // for each octet
-        foreach(var octet in octets) 
-        {
-            int q;
-            // if parse fails 
-            // or length of parsed int != length of octet string (i.e.; '1' vs '001')
-            // or parsed int < 0
-            // or parsed int > 255
-            // return false
-            if (!Int32.TryParse(octet, out q) 
-                || !q.ToString().Length.Equals(octet.Length) 
-                || q < 0 
-                || q > 255) { return false; }
-        }
-        return true;
     }
 
-    //Fixme: this should be moved to the factory class. 
-    public static bool validateNetworkConnection(string address)
+    public static class Globals
     {
-        Ping pingSender = new Ping ();
-        PingOptions options = new PingOptions ();
+    public static bool outputAllRecords { get; set; } = false;
+    public static bool outputVerbose { get; set; } = false;
+    public static bool skipPing { get; set; } = false;
 
-        // Use the default Ttl value which is 128,
-        // but change the fragmentation behavior.
-        options.DontFragment = true;
-
-        // Create a buffer of 32 bytes of data to be transmitted.
-        string data = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-        byte[] buffer = Encoding.ASCII.GetBytes (data);
-        int timeout = 1000;
-        PingReply reply = pingSender.Send (address, timeout, buffer, options);
-        if (reply.Status == IPStatus.Success)
-        {
-            Globals.logger.LogDebug ("Ping Status: {0}", reply.Status);
-            Globals.logger.LogDebug ("Address: {0}", reply.Address.ToString ());
-            Globals.logger.LogDebug ("RoundTrip time: {0}", reply.RoundtripTime);
-            return true;
-        }
-        return false;
-    }
-    }
-
-    static class Globals
-    {
     // create a logger factory
     public static ILoggerFactory loggerFactory = LoggerFactory.Create(
         builder => builder
@@ -140,6 +146,5 @@ namespace powerFlexBackup
     // create a logger
     public static ILogger logger = loggerFactory.CreateLogger<Program>();
 
-    public static bool outputAllRecords = true;
     }
 }

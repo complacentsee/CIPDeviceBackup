@@ -4,12 +4,12 @@ using powerFlexBackup.cipdevice.deviceParameterObjects;
 namespace powerFlexBackup.cipdevice
 {
     public class CIPDevice_PowerFlex525 : CIPDevice{
-        public CIPDevice_PowerFlex525(String driveAddress, IdentityObject identityObject, Sres.Net.EEIP.EEIPClient eeipClient) :
-            base(driveAddress, identityObject, eeipClient)
+        public CIPDevice_PowerFlex525(String deviceAddress, IdentityObject identityObject, Sres.Net.EEIP.EEIPClient eeipClient) :
+            base(deviceAddress, identityObject, eeipClient)
         {
             setDeviceParameterClassID(0x0F);
-            setDeviceParameterList(JsonConvert.DeserializeObject<List<DeviceParameter>>(parameterListJSON));  
-            setInstanceAttribute(JsonConvert.DeserializeObject<List<InstanceAttribute>>(instanceAttributeJSON));      
+            setDeviceParameterList(JsonConvert.DeserializeObject<List<DeviceParameter>>(parameterListJSON)!);  
+            setInstanceAttribute(JsonConvert.DeserializeObject<List<InstanceAttribute>>(instanceAttributeJSON)!);      
         }
 
         /* Process the parameter from a bytearray to an int based on type
@@ -18,7 +18,7 @@ namespace powerFlexBackup.cipdevice
         0xC4 = DINT (32-bits)
         0xC6 = USINT (8-bits)
         0xC7 = UINT (16-bits)
-        0xCA = REAL (32-bits)  -- FIXME: NEED EXAMPLE TO IMPLEMENT, DEVICE DOES NOT RETURN ANY REAL VALUES 
+        0xCA = REAL (32-bits)  TODO: NEED EXAMPLE TO IMPLEMENT, DEVICE DOES NOT RETURN ANY REAL VALUES
         0xD2 = WORD (16-bits) */
         
         public override string getParameterValuefromBytes(byte[] parameterValueBytes, byte[] type)
