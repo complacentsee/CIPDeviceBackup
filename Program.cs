@@ -160,7 +160,6 @@ namespace powerFlexBackup
                     {  
                         SupportedDevice a = (SupportedDevice)attr;  
                         supportedDevices +=  Environment.NewLine + a.GetSupprtedDeviceType();
-                        System.Console.WriteLine(a.GetSupprtedDeviceType());  
                     }  
                 }  
             }
