@@ -37,15 +37,21 @@ namespace powerFlexBackup
                 Console.WriteLine("Ping succeeded to address: {0}", hostAddress);
                 
             this.eeipClient.RegisterSession(hostAddress);
-            var rawIdentityObject = getRawIdentiyObjectfromSession(this.eeipClient);
-            this.eeipClient.UnRegisterSession();
+            try{
+                var rawIdentityObject = getRawIdentiyObjectfromSession(this.eeipClient);
+                this.eeipClient.UnRegisterSession();
 
-            var deviceType = getIdentiyObjectDeviceTypefromRaw(rawIdentityObject);
-            var productCode = getIdentiyObjectProductCodefromRaw(rawIdentityObject);
+                var deviceType = getIdentiyObjectDeviceTypefromRaw(rawIdentityObject);
+                var productCode = getIdentiyObjectProductCodefromRaw(rawIdentityObject);
 
-            this.eeipClient.UnRegisterSession();
-            var DeviceClass = Type.GetType(DeviceDictionary.getCIPDeviceClass(deviceType, productCode));
-            return (CIPDevice)Activator.CreateInstance(DeviceClass!, new object[] {hostAddress, eeipClient})!;
+                this.eeipClient.UnRegisterSession();
+                var DeviceClass = Type.GetType(DeviceDictionary.getCIPDeviceClass(deviceType, productCode));
+                return (CIPDevice)Activator.CreateInstance(DeviceClass!, new object[] {hostAddress, eeipClient})!;
+            }
+            catch(Exception e){
+                Globals.logger.LogError("Unable to create device object: {0}", e.Message);
+                throw new InvalidOperationException("Unable to create device object.");
+            }
         }
 
         private static byte[] getRawIdentiyObjectfromSession(Sres.Net.EEIP.EEIPClient eeipClient)

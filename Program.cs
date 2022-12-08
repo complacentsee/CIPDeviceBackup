@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using powerFlexBackup.cipdevice;
 using System.CommandLine;
+using powerFlexBackup.cipdevice.deviceParameterObjects;
 
 namespace powerFlexBackup
 {
@@ -19,7 +20,8 @@ namespace powerFlexBackup
 
             //TODO: Try to populate the list of supported devices automatically and print to console.
             var rootCommand = new RootCommand(String.Format("Application to record Ethernet CIP device parameters and save to file." + 
-                                                            "\nVersion {0}", applicationVersion));
+                                                            "\nSupported Devices: {0}" +
+                                                            "\nVersion {1}", getSupportedDevices(), applicationVersion));
 
             var hostOption = new Option<String?>(
                 name: "--host",
@@ -121,9 +123,10 @@ namespace powerFlexBackup
                     }
 
                     StreamWriter output = new StreamWriter(outputFile!.FullName);
-                    output.Write(JsonConvert.SerializeObject(cipDevice.getIdentityObject(),Formatting.Indented));
-                    output.WriteLine();
-                    output.Write(JsonConvert.SerializeObject(cipDevice.getDeviceParameterList(),Formatting.Indented));
+                    foreach(DeviceParameterObject ParameterObject in cipDevice.getParameterObject()){
+                        output.Write(JsonConvert.SerializeObject(ParameterObject,Formatting.Indented));
+                        output.WriteLine();
+                    }
                     output.Close();
                     Globals.logger.LogInformation ("File saved to {0}", outputFile!.FullName);
                 }
@@ -135,8 +138,35 @@ namespace powerFlexBackup
                 eeipClient.UnRegisterSession();
                 Thread.Sleep(250);
                 return;
-
             }
+
+            static string getSupportedDevices()  
+            {  
+ 
+            var types = AppDomain.CurrentDomain.GetAssemblies()
+                                .SelectMany(assembly => assembly.GetTypes())
+                                .Where(type => type.IsSubclassOf(typeof(CIPDevice)));
+
+            String supportedDevices = "";
+
+            foreach (var type in types){
+                // Using reflection.  
+                System.Attribute[] attrs = System.Attribute.GetCustomAttributes(type);  // Reflection.  
+        
+                // Displaying output.  
+                foreach (System.Attribute attr in attrs)  
+                {  
+                    if (attr is SupportedDevice)  
+                    {  
+                        SupportedDevice a = (SupportedDevice)attr;  
+                        supportedDevices +=  Environment.NewLine + a.GetSupprtedDeviceType();
+                        System.Console.WriteLine(a.GetSupprtedDeviceType());  
+                    }  
+                }  
+            }
+            return supportedDevices;
+            }  
+
         }
     }
 

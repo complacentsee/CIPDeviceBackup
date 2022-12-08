@@ -3,7 +3,9 @@ namespace powerFlexBackup.cipdevice.deviceParameterObjects
 {
     public class DeviceParameterObject
     {
+        [JsonIgnore]
         public int ClassID { get; set; } = 0x0F;
+        public int Port { get; set; } = 0;
         public IdentityObject identityObject = new IdentityObject();
         public List<DeviceParameter> ParameterList { get; set; } = default!;
         
@@ -23,5 +25,22 @@ namespace powerFlexBackup.cipdevice.deviceParameterObjects
             instanceAttributes.Add(new InstanceAttribute(5, "Data Type"));
             instanceAttributes.Add(new InstanceAttribute(6, "Data Size"));
         }
+
+        public DeviceParameterObject(int ClassID, IdentityObject identityObject, List<DeviceParameter> ParameterList, int port)
+        {
+            this.ClassID = ClassID;
+            this.identityObject = identityObject;
+            this.ParameterList = ParameterList;
+            this.Port = port;
+            this.instanceAttributes = new List<InstanceAttribute>();
+            this.instanceAttributes.Add(new InstanceAttribute(1, "Parameter Value"));
+            this.instanceAttributes.Add(new InstanceAttribute(2, "Link Path Size"));
+            this.instanceAttributes.Add(new InstanceAttribute(3, "Link Path"));
+            this.instanceAttributes.Add(new InstanceAttribute(4, "Descriptor"));
+            this.instanceAttributes.Add(new InstanceAttribute(5, "Data Type"));
+            this.instanceAttributes.Add(new InstanceAttribute(6, "Data Size"));
+        }
+
+        //public bool ShouldSerializePort() {return Port > 1;}
     }
 }

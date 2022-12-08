@@ -3,6 +3,7 @@ using powerFlexBackup.cipdevice.deviceParameterObjects;
 
 namespace powerFlexBackup.cipdevice
 {
+    [SupportedDevice("PowerFlex 520 Series")] 
     public class CIPDevice_PowerFlex525 : CIPDevice{
         public CIPDevice_PowerFlex525(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient) :
             base(deviceAddress, eeipClient)

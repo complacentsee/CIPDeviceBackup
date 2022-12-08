@@ -22,6 +22,10 @@ namespace powerFlexBackup.cipdevice
 
         public IdentityObject getIdentityObjectfromResponse(byte[] IdentityObjectBytes)
         {
+            if(IdentityObjectBytes.Length < 15){
+                Globals.logger.LogError("IdentityObjectBytes is too short");
+                throw new Exception("IdentityObjectBytes is too short");
+            }
             IdentityObject IdentityObject = new IdentityObject();
             
             IdentityObject.VendorID = Convert.ToUInt16(IdentityObjectBytes[0]

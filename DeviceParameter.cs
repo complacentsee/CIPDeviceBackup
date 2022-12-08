@@ -3,7 +3,6 @@ namespace powerFlexBackup.cipdevice.deviceParameterObjects
 {
     public class DeviceParameter
     {
-        public int? port { get; set; } = null;
         public int number { get; set; }
         public string name { get; set; }
         public string value { get; set; }
@@ -59,6 +58,5 @@ namespace powerFlexBackup.cipdevice.deviceParameterObjects
         public bool ShouldSerializeisDescriptor() {return false | Globals.outputAllRecords;}
         public bool ShouldSerializedisplayValue() {return false | Globals.outputAllRecords;}
 
-        public bool ShouldSerializeport() {return !(port is null) | Globals.outputAllRecords;}
     }
 }

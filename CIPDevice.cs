@@ -45,25 +45,31 @@ namespace powerFlexBackup.cipdevice
             this.deviceAddress = deviceAddress;
         }
 
-        public void setDeviceParameterList (List<DeviceParameter> DeviceParameterList){
-            this.parameterObject[0].ParameterList = DeviceParameterList;
+        public void setDeviceParameterList (List<DeviceParameter> DeviceParameterList, int instance = 0){
+            this.parameterObject[instance].ParameterList = DeviceParameterList;
         }
 
-        public void setInstanceAttribute(List<InstanceAttribute> InstanceAttribute){
-            this.parameterObject[0].instanceAttributes = InstanceAttribute;
+        public void setInstanceAttribute(List<InstanceAttribute> InstanceAttribute, int instance = 0){
+            this.parameterObject[instance].instanceAttributes = InstanceAttribute;
         }
 
         public int getDeviceParameterClassID(int instance = 0){
             return this.parameterObject[instance].ClassID;
         }
-        public void removeNonRecordedDeviceParameters(int instance = 0){
-            this.parameterObject[instance].ParameterList.RemoveAll(x => x.record == false);
+        public void removeNonRecordedDeviceParameters(){
+            foreach(var instance in this.parameterObject){
+                instance.ParameterList.RemoveAll(x => x.record == false);
+            }
         }
-        public void removeReadOnlyDeviceParameters(int instance = 0){
-            this.parameterObject[instance].ParameterList.RemoveAll(x => x.isWritable == false);
+        public void removeReadOnlyDeviceParameters(){
+            foreach(var instance in this.parameterObject){
+                instance.ParameterList.RemoveAll(x => x.isWritable == false);
+            }
         }
-        public void removeDefaultDeviceParameters(int instance = 0){
-            this.parameterObject[instance].ParameterList.RemoveAll(x => x.defaultValue.Equals(x.value));
+        public void removeDefaultDeviceParameters(){
+            foreach(var instance in this.parameterObject){
+                    instance.ParameterList.RemoveAll(x => x.defaultValue.Equals(x.value));
+            }
         }
 
         public List<DeviceParameter> getDeviceParameterList(int instance = 0){
@@ -77,6 +83,11 @@ namespace powerFlexBackup.cipdevice
         public IdentityObject getIdentityObject(int instance = 0 )
         {
             return this.parameterObject[instance].identityObject;
+        }
+
+        public List<DeviceParameterObject> getParameterObject()
+        {
+            return this.parameterObject;
         }
 
         public void setDeviceIsGeneric(){
@@ -137,7 +148,7 @@ namespace powerFlexBackup.cipdevice
         public abstract void getAllDeviceParameters();
 
         public void getAllDeviceParametersCIPStandardCompliant(int instance = 0){
-                       var maxParameterNumber = readDeviceParameterMaxNumber();
+            var maxParameterNumber = readDeviceParameterMaxNumber();
             for(int i = 1; i <= maxParameterNumber; i++)
             {
                 var parameterNumber = i;
