@@ -24,44 +24,61 @@ namespace powerFlexBackup.cipdevice{
         return result;
         }
 
+        public static bool[] unpackageBytesToBoolArray(byte[] byteArray){
+            var Length = byteArray.Count() * 8;
+            bool[] boolArray = new bool[Length];
+            for (int i = 0; i < Length; i++){
+                boolArray[i] = (byteArray[i/8] & (1 << (i % 8))) != 0;
+            }
+        return boolArray;
+    }
+
         public static String convertBytestoUSINT8(byte[] parameterValueBytes)
         {
-            return Convert.ToString(Convert.ToUInt16(parameterValueBytes[0]));
+            return BitConverter.ToUInt16(parameterValueBytes).ToString();
         }
 
         public static String convertBytestoINT8(byte[] parameterValueBytes)
         {
-            var parameterValue = (sbyte) (parameterValueBytes[0]);
-            return Convert.ToString(Convert.ToInt16(parameterValue));
+            // var parameterValue = (sbyte) (parameterValueBytes[0]);
+            // return Convert.ToString(Convert.ToInt16(parameterValue));
+            return BitConverter.ToInt16(parameterValueBytes).ToString();
         }
 
         public static String convertBytestoUINT16LittleEndian(byte[] parameterValueBytes)
         {
-            return Convert.ToString(Convert.ToUInt16(parameterValueBytes[0]
-                                                        | parameterValueBytes[1] << 8));
+            return BitConverter.ToUInt16(parameterValueBytes).ToString();
+        }
+
+        public static UInt16 convertBytestoUINT16LittleEndianV(byte[] parameterValueBytes)
+        {
+            return BitConverter.ToUInt16(parameterValueBytes);
         }
 
         public static String convertBytesToINT16LittleEndian(byte[] parameterValueBytes)
         {
-            var parameterValue = (Int16) (parameterValueBytes[0] | parameterValueBytes[1] << 8);
-            return Convert.ToString(Convert.ToInt16(parameterValue));
+            return BitConverter.ToInt16(parameterValueBytes).ToString();
         }
 
-        public static String convertBytestoUINT32LittleEndian(byte[] parameterValueBytes)
+        public static Int16 convertBytesToINT16LittleEndianV(byte[] parameterValueBytes)
         {
-            return Convert.ToString(Convert.ToUInt32(parameterValueBytes[0]
-                                                        | parameterValueBytes[1] << 8
-                                                        | parameterValueBytes[2] << 16
-                                                        | parameterValueBytes[3] << 24));
+            return BitConverter.ToInt16(parameterValueBytes);
         }
 
         public static String convertBytestoINT32LittleEndian(byte[] parameterValueBytes)
         {
-            var value = (Int32)(parameterValueBytes[0]
-                                                        | parameterValueBytes[1] << 8
-                                                        | parameterValueBytes[2] << 16
-                                                        | parameterValueBytes[3] << 24);
-            return value.ToString();
+            return BitConverter.ToInt32(parameterValueBytes).ToString();
+        }
+
+        public static String convertBytestoUINT32LittleEndian(byte[] parameterValueBytes)
+        {
+
+            return BitConverter.ToUInt32(parameterValueBytes,0).ToString();
+        }
+        
+        public static String convertBytestoFloat32LittleEndian(byte[] parameterValueBytes)
+        {
+            return BitConverter.ToSingle(parameterValueBytes,0).ToString();;
         }
 
         public static String convertBytestoBOOL(byte[] parameterValueBytes)

@@ -4,128 +4,42 @@ using powerFlexBackup.cipdevice.deviceParameterObjects;
 namespace powerFlexBackup.cipdevice
 {
     public class CIPDevice_193ETN : CIPDevice{
-        public CIPDevice_193ETN(String deviceAddress, IdentityObject identityObject, Sres.Net.EEIP.EEIPClient eeipClient) :
-            base(deviceAddress, identityObject, eeipClient)
+        public CIPDevice_193ETN(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient) :
+            base(deviceAddress, eeipClient)
         {
-            setDeviceParameterClassID(0x0F);
+            setParameterClassID(0x0F);
+            setInstanceAttributes();
             setDeviceParameterList(JsonConvert.DeserializeObject<List<DeviceParameter>>(parameterListJSON)!);    
-            setInstanceAttribute(JsonConvert.DeserializeObject<List<InstanceAttribute>>(instanceAttributeJSON)!);    
         }
 
-        /* Process the parameter from a bytearray to an int based on type
-        0xC1 - BOOL
-        0xC6 - USINT
-        0xC7 - UINT
-        0xD2 - WORD */
-        public override string getParameterValuefromBytes(byte[] parameterValueBytes, byte[] type)
-        {
-            switch (type[0])
-            {
-                case 0xC1:
-                    return CIPDeviceHelper.convertBytestoBOOL(parameterValueBytes);
-
-                case 0xC6:
-                    return CIPDeviceHelper.convertBytestoUSINT8(parameterValueBytes);
-
-                case 0xC7:
-                    return CIPDeviceHelper.convertBytestoUINT16LittleEndian(parameterValueBytes);
-
-                case 0xD2:
-                    return CIPDeviceHelper.convertBytestoDWORD(parameterValueBytes);
-
-                default:
-                    return "Unknown Parameter Type";    
-            }
+        public override void setInstanceAttributes(int instance = 0){
+            parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(7, "Parameter Name String"));
+            parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(8, "Units String"));
+            parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(9, "Help String"));
+            parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(10, "Minimum Value"));
+            parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(11, "Maximum Value"));
+            parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(12, "Default Value"));
+            parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(13, "Scaling Multiplier"));
+            parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(14, "Scaling Divisor"));
+            parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(15, "Scaling Base"));
+            parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(16, "Scaling Offset"));
+            parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(17, "Multiplier Link"));
+            parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(18, "Divisor Link"));
+            parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(19, "Base Link"));
+            parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(20, "Offset Link"));
+            parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(21, "Decimal Precision"));
         }
 
-        //can this be dynamically generated?
-        public string instanceAttributeJSON = @"[
-                        {
-                            'AttributeID': 1,
-                            'Name': 'Parameter Value'
-                            },                   
-                            {
-                            'AttributeID': 2,
-                            'Name': 'Link Path Size'
-                            },
-                            {
-                            'AttributeID': 3,
-                            'Name': 'Link Path'
-                            },
-                            {
-                            'AttributeID': 4,
-                            'Name': 'Descriptor'
-                            },
-                            {
-                            'AttributeID': 5,
-                            'Name': 'Data Type'
-                            },
-                            {
-                            'AttributeID': 6,
-                            'Name': 'Data Size'
-                            },
-                            {
-                            'AttributeID': 7,
-                            'Name': 'Parameter Name String'
-                            },
-                            {
-                            'AttributeID': 8,
-                            'Name': 'Units String'
-                            },
-                            {
-                            'AttributeID': 9,
-                            'Name': 'Help String'
-                            },
-                            {
-                            'AttributeID': 10,
-                            'Name': 'Minimum Value'
-                            },
-                            {
-                            'AttributeID': 11,
-                            'Name': 'Maximum Value'
-                            },
-                            {
-                            'AttributeID': 12,
-                            'Name': 'Default Value'
-                            },
-                            {
-                            'AttributeID': 13,
-                            'Name': 'Scaling Multiplier'
-                            },
-                            {
-                            'AttributeID': 14,
-                            'Name': 'Scaling Divisor'
-                            },
-                            {
-                            'AttributeID': 15,
-                            'Name': 'Scaling Base'
-                            },
-                            {
-                            'AttributeID': 16,
-                            'Name': 'Scaling Offset'
-                            },
-                            {
-                            'AttributeID': 17,
-                            'Name': 'Multiplier Link'
-                            },
-                            {
-                            'AttributeID': 18,
-                            'Name': 'Divisor Link'
-                            },
-                            {
-                            'AttributeID': 19,
-                            'Name': 'Base Link'
-                            },
-                            {
-                            'AttributeID': 20,
-                            'Name': 'Offset Link'
-                            },
-                            {
-                            'AttributeID': 21,
-                            'Name': 'Decimal Precision'
-                            }
-                            ]";
+        public override void getDeviceParameterValues(){
+            getDeviceParameterValuesCIPStandardCompliant();
+        }
+        public override void getAllDeviceParameters(){
+            getAllDeviceParametersCIPStandardCompliant();
+        }
 
+        public override int readDeviceParameterMaxNumber(){
+            return readDeviceParameterMaxNumberCIPStandardCompliant();
+        }
                 public string parameterListJSON = @"[
                         {
                             'number': 1,

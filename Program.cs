@@ -15,8 +15,9 @@ namespace powerFlexBackup
 
             String address = "";
             FileInfo? outputFile = null;
+            int? classID = null;
 
-            //TODO: Try to populate the list of supported devices automatically and print to console. 
+            //TODO: Try to populate the list of supported devices automatically and print to console.
             var rootCommand = new RootCommand(String.Format("Application to record Ethernet CIP device parameters and save to file." + 
                                                             "\nVersion {0}", applicationVersion));
 
@@ -61,7 +62,13 @@ namespace powerFlexBackup
                 description: "Skips pinging address prior to attempting connection. Useful for devices behind a firewalls with ICMP disabled.");
             rootCommand.AddOption(skipPingOption); 
 
-            rootCommand.SetHandler((hostname, outputAllParameters, outputVerbose, skipPing, file) => 
+            var setParameterClassIDOption = new Option<int?>(
+                name: "--classID",
+                description: "Specify Custom Parameter ClassID.")
+                { IsHidden = true };
+            rootCommand.AddOption(setParameterClassIDOption);  
+
+            rootCommand.SetHandler((hostname, outputAllParameters, outputVerbose, skipPing, file, setParameterClassID) => 
             { 
                 address = hostname!;
 
@@ -74,11 +81,14 @@ namespace powerFlexBackup
                 if(skipPing == true)
                     Globals.skipPing = true;
 
+                if(setParameterClassID is not null)
+                    classID = setParameterClassID;
+
                 outputFile = file;
 
                 mainProgram();
             },
-            hostOption, outputAllParametersOption, outputVerboseOption, skipPingOption, fileOption);
+            hostOption, outputAllParametersOption, outputVerboseOption, skipPingOption, fileOption, setParameterClassIDOption);
             
             rootCommand.Invoke(args);
 
@@ -92,12 +102,15 @@ namespace powerFlexBackup
                     if(Globals.outputVerbose)
                         Console.WriteLine("Getting device parameters from upload...");
 
+                    if(classID is not null)
+                        cipDevice.setParameterClassID((int)classID);
+
                     if(!Globals.outputAllRecords){       
                         cipDevice.getDeviceParameterValues();             
                         cipDevice.removeNonRecordedDeviceParameters();
                         cipDevice.removeDefaultDeviceParameters();
                     } else{
-                        cipDevice.getDeviceParameterValues();
+                        cipDevice.getAllDeviceParameters();
                     }
 
                     if(Globals.outputVerbose)

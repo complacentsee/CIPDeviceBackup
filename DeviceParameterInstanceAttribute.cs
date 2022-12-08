@@ -8,6 +8,12 @@ namespace powerFlexBackup.cipdevice.deviceParameterObjects
         public InstanceAttribute()
         {
         }
+
+        public InstanceAttribute(int attributeID, string name)
+        {
+            AttributeID = attributeID;
+            Name = name;
+        }
     }
 
 }

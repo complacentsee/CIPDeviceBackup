@@ -1,9 +1,7 @@
 using System.Net.NetworkInformation;
 using System.Text;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using powerFlexBackup.cipdevice;
-using powerFlexBackup.cipdevice.deviceParameterObjects;
 
 namespace powerFlexBackup
 {
@@ -40,17 +38,14 @@ namespace powerFlexBackup
                 
             this.eeipClient.RegisterSession(hostAddress);
             var rawIdentityObject = getRawIdentiyObjectfromSession(this.eeipClient);
-            var deviceType = getIdentiyObjectDeviceTypefromRaw(rawIdentityObject);
-            var productCode = getIdentiyObjectProductCodefromRaw(rawIdentityObject);
-            var identityObjectClassString = DeviceDictionary.getIdentityObjectClass(deviceType, productCode);
-            var DeviceClass = Type.GetType(DeviceDictionary.getCIPDeviceClass(deviceType, productCode));
-            var IdentityObjectClass = Type.GetType(identityObjectClassString);
-
-            var identityObject = (IdentityObject)Activator.CreateInstance(IdentityObjectClass!)!;
-
             this.eeipClient.UnRegisterSession();
 
-            return (CIPDevice)Activator.CreateInstance(DeviceClass!, new object[] {hostAddress, identityObject, eeipClient})!;
+            var deviceType = getIdentiyObjectDeviceTypefromRaw(rawIdentityObject);
+            var productCode = getIdentiyObjectProductCodefromRaw(rawIdentityObject);
+
+            this.eeipClient.UnRegisterSession();
+            var DeviceClass = Type.GetType(DeviceDictionary.getCIPDeviceClass(deviceType, productCode));
+            return (CIPDevice)Activator.CreateInstance(DeviceClass!, new object[] {hostAddress, eeipClient})!;
         }
 
         private static byte[] getRawIdentiyObjectfromSession(Sres.Net.EEIP.EEIPClient eeipClient)

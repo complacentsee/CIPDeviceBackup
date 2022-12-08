@@ -7,20 +7,24 @@ namespace powerFlexBackup.cipdevice
 
     public abstract class CIPDevice
     {
-        private IdentityObject identityObject;
-        private DeviceParameterObject parameterObject;
+        private IdentityObject parentIdentityObject;
+        public List<DeviceParameterObject> parameterObject;
         private Sres.Net.EEIP.EEIPClient eeipClient;
         private String deviceAddress;
+        private bool deviceIsGeneric = false;
 
-        public CIPDevice(String deviceAddress, IdentityObject identityObject, Sres.Net.EEIP.EEIPClient eeipClient)
+        public CIPDevice(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient)
         {
             this.deviceAddress = deviceAddress;
-            this.identityObject = identityObject;
             this.eeipClient = eeipClient;
             this.eeipClient.RegisterSession(deviceAddress);
+
+            this.parentIdentityObject = new IdentityObject();
             var rawIdentityObject = getRawIdentiyObject();
-            this.identityObject = identityObject.getIdentityObjectfromResponse(rawIdentityObject);
-            this.parameterObject = new DeviceParameterObject();
+            this.parentIdentityObject = parentIdentityObject.getIdentityObjectfromResponse(rawIdentityObject);
+
+            this.parameterObject = new List<DeviceParameterObject>();
+            this.parameterObject.Add(new DeviceParameterObject(0x0F,this.parentIdentityObject, new List<DeviceParameter>()));
         }
         
         private static void registerDeviceAddress(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient)
@@ -30,7 +34,7 @@ namespace powerFlexBackup.cipdevice
 
         public void setDeviceIdentiyObject(IdentityObject identityObject)
         {
-            this.identityObject = identityObject;
+            this.parentIdentityObject = identityObject;
         }
 
         public void setEEIPClient (Sres.Net.EEIP.EEIPClient Client){
@@ -42,50 +46,66 @@ namespace powerFlexBackup.cipdevice
         }
 
         public void setDeviceParameterList (List<DeviceParameter> DeviceParameterList){
-            this.parameterObject.ParameterList = DeviceParameterList;
+            this.parameterObject[0].ParameterList = DeviceParameterList;
         }
 
         public void setInstanceAttribute(List<InstanceAttribute> InstanceAttribute){
-            this.parameterObject.instanceAttributes = InstanceAttribute;
+            this.parameterObject[0].instanceAttributes = InstanceAttribute;
         }
 
-        public void setDeviceParameterClassID(int ClassID){
-            this.parameterObject.ClassID = ClassID;
+        public int getDeviceParameterClassID(int instance = 0){
+            return this.parameterObject[instance].ClassID;
+        }
+        public void removeNonRecordedDeviceParameters(int instance = 0){
+            this.parameterObject[instance].ParameterList.RemoveAll(x => x.record == false);
+        }
+        public void removeReadOnlyDeviceParameters(int instance = 0){
+            this.parameterObject[instance].ParameterList.RemoveAll(x => x.isWritable == false);
+        }
+        public void removeDefaultDeviceParameters(int instance = 0){
+            this.parameterObject[instance].ParameterList.RemoveAll(x => x.defaultValue.Equals(x.value));
         }
 
-        public int getDeviceParameterClassID(){
-            return this.parameterObject.ClassID;
+        public List<DeviceParameter> getDeviceParameterList(int instance = 0){
+            return this.parameterObject[instance].ParameterList;
         }
 
-        public void initializeDeviceParameterObject (){
-            this.parameterObject = new DeviceParameterObject();
-        }
-
-        public void removeNonRecordedDeviceParameters (){
-            this.parameterObject.ParameterList.RemoveAll(x => x.record == false);
-        }
-        public void removeDefaultDeviceParameters (){
-            this.parameterObject.ParameterList.RemoveAll(x => x.defaultValue.Equals(x.value));
-        }
-
-        public List<DeviceParameter> getDeviceParameterList (){
-            return this.parameterObject.ParameterList;
-        }
-
-        public IdentityObject getIdentityObject()
+        public IdentityObject getParentIdentityObject()
         {
-            return this.identityObject;
+            return this.parentIdentityObject;
+        }
+        public IdentityObject getIdentityObject(int instance = 0 )
+        {
+            return this.parameterObject[instance].identityObject;
         }
 
-        public int getAttributeIDfromString(String attributeName)
-        {
-            return parameterObject.instanceAttributes.Find(x => x.Name.Equals(attributeName))!.AttributeID;
+        public void setDeviceIsGeneric(){
+            this.deviceIsGeneric = true;
         }
 
-        public void getDeviceParameterValues()
+        public void setParameterClassID(int ClassID, int instance = 0){
+            this.parameterObject[instance].ClassID = ClassID;
+        }
+        public bool getDeviceIsGeneric(){
+            return this.deviceIsGeneric;
+        }
+
+        public int getAttributeIDfromString(String attributeName, int instance = 0)
         {
-            if(parameterObject.ParameterList != null){
-                foreach(DeviceParameter Parameter in parameterObject.ParameterList)
+            return this.parameterObject[instance].instanceAttributes.Find(x => x.Name.Equals(attributeName))!.AttributeID;
+        }
+
+        public abstract void getDeviceParameterValues();
+
+        public abstract void setInstanceAttributes(int instance = 0);
+        public void getDeviceParameterValuesCIPStandardCompliant(int instance = 0)
+        {
+            if(getDeviceIsGeneric()){
+                getAllDeviceParameters();
+            }
+
+            if(parameterObject[instance].ParameterList != null){
+                foreach(DeviceParameter Parameter in parameterObject[instance].ParameterList)
                     {
                         if(Parameter.record | Globals.outputAllRecords){
 
@@ -96,6 +116,7 @@ namespace powerFlexBackup.cipdevice
                             Parameter.value = getParameterValuefromBytes(parameterValue,Parameter.type);
                             byte[] defaultParameterValue = readDeviceParameterDefaultValue(Parameter.number);
                             Parameter.defaultValue = getParameterValuefromBytes(defaultParameterValue,Parameter.type);
+                            Parameter.Descriptor = readDeviceParameterDescriptor(Parameter.number).ToString()!;
 
                             Parameter.valueHex = Convert.ToHexString(parameterValue);
                             Parameter.typeHex = Convert.ToHexString(Parameter.type);
@@ -113,9 +134,10 @@ namespace powerFlexBackup.cipdevice
             return;
         }
 
-        public void getAllDeviceParameters()
-        {
-            var maxParameterNumber = readDeviceParameterMaxNumber();
+        public abstract void getAllDeviceParameters();
+
+        public void getAllDeviceParametersCIPStandardCompliant(int instance = 0){
+                       var maxParameterNumber = readDeviceParameterMaxNumber();
             for(int i = 1; i <= maxParameterNumber; i++)
             {
                 var parameterNumber = i;
@@ -124,6 +146,7 @@ namespace powerFlexBackup.cipdevice
                 var parameterValue = readDeviceParameterValue(parameterNumber);
                 var defaultParameterValue = readDeviceParameterDefaultValue(parameterNumber);
                 var parameterValueString = getParameterValuefromBytes(parameterValue,parameterType);
+                var parameterDescriptor = readDeviceParameterDescriptor(parameterNumber);
 
                 if(Globals.outputVerbose){
                     Console.WriteLine("Parameter #{0}, Name: {1}, Value(Bytes): {2}, Type: {3}", 
@@ -133,26 +156,42 @@ namespace powerFlexBackup.cipdevice
                         Convert.ToHexString(parameterType));
                 }
 
-
+                //FIXME: IMPROVE CONSTRUCTOR FOR DeviceParameter
                 var parameter = new DeviceParameter(parameterNumber,parameterName,parameterValueString,Convert.ToHexString(parameterType),true,parameterType);
                 parameter.valueHex = Convert.ToHexString(parameterValue);
                 parameter.typeHex = Convert.ToHexString(parameterType);
-                parameterObject.ParameterList.Add(parameter);
+                parameter.Descriptor = parameterDescriptor.ToString()!;
+                parameter.isWritable = !parameterReadOnly(parameterDescriptor);
+                parameterObject[instance].ParameterList.Add(parameter);
             }
-            return;
+            return; 
         }
 
-        private int readDeviceParameterMaxNumber(){
-            byte[] maxParameterNumberBytes = eeipClient.GetAttributeSingle(parameterObject.ClassID, 0, 2);
+        public abstract int readDeviceParameterMaxNumber();
+        public int readDeviceParameterMaxNumberCIPStandardCompliant(int  instance = 0){
+            byte[] maxParameterNumberBytes = eeipClient.GetAttributeSingle(parameterObject[instance].ClassID, 0, 2);
             int maxParameterNumber = Convert.ToUInt16(maxParameterNumberBytes[0]
                                                         | maxParameterNumberBytes[1] << 8);
             return maxParameterNumber;
         }
 
-        private String readDeviceParameterName(int parameterNumber){
-            byte[] parameterNameBytes = eeipClient.GetAttributeSingle(parameterObject.ClassID, parameterNumber, getAttributeIDfromString("Parameter Name String"));
-            String parameterName = System.Text.Encoding.ASCII.GetString(parameterNameBytes, 1, Convert.ToInt32(parameterNameBytes[0])).TrimEnd();
-            return parameterName;
+        public byte[] GetAttributeSingle(int classID, int instanceID, int attributeID)
+        {   try{return eeipClient.GetAttributeSingle(classID, instanceID, attributeID);}
+            catch(Exception e){
+                Console.WriteLine(e.Message);
+                return new byte[0];}
+        }
+
+        private String readDeviceParameterName(int parameterNumber, int instance = 0){
+            try{
+                byte[] parameterNameBytes = eeipClient.GetAttributeSingle(parameterObject[instance].ClassID, parameterNumber, getAttributeIDfromString("Parameter Name String"));
+                String parameterName = System.Text.Encoding.ASCII.GetString(parameterNameBytes, 1, Convert.ToInt32(parameterNameBytes[0])).TrimEnd();
+                return parameterName;
+            }
+            catch(Exception e){
+                Console.WriteLine(e.Message);
+                return "";
+            }
         }
 
         private byte[] getRawIdentiyObject()
@@ -164,6 +203,11 @@ namespace powerFlexBackup.cipdevice
         private byte[] readDeviceParameterValue(int parameterNumber)
         {
             return this.eeipClient.GetAttributeSingle(getDeviceParameterClassID(),parameterNumber, getAttributeIDfromString("Parameter Value"));
+        }
+
+        private byte[] readDeviceParameterDescriptor(int parameterNumber)
+        {
+            return this.eeipClient.GetAttributeSingle(getDeviceParameterClassID(),parameterNumber, getAttributeIDfromString("Descriptor"));
         }
 
         private byte[] readDeviceParameterDefaultValue(int parameterNumber)
@@ -181,9 +225,65 @@ namespace powerFlexBackup.cipdevice
             return this.eeipClient.GetAttributeSingle(getDeviceParameterClassID(),parameterNumber, getAttributeIDfromString("Data Size"));
         }
 
-        //Each Device class should have a method to convert the returned bytes to the correct data type.
-        //This could be done more elgeantly. 
-        public abstract string getParameterValuefromBytes(byte[] parameterValueBytes, byte[] type);
+        public byte[] getRawIdentiyObjectfromInstance(int instance)
+        {
+            return eeipClient.GetAttributeAll(0x01, instance);
+        }
+
+        public string getParameterValuefromBytes(byte[] parameterValueBytes, byte[] type)
+        {
+            switch (type[0])
+            {
+                case 0xC1:
+                    return CIPDeviceHelper.convertBytestoBOOL(parameterValueBytes);
+
+                case 0xC2:
+                    return CIPDeviceHelper.convertBytestoINT8(parameterValueBytes);
+
+                case 0xC3:
+                    return CIPDeviceHelper.convertBytesToINT16LittleEndian(parameterValueBytes);
+
+                case 0xC4:
+                    return CIPDeviceHelper.convertBytestoINT32LittleEndian(parameterValueBytes);
+
+                case 0xC6:
+                    return CIPDeviceHelper.convertBytestoUSINT8(parameterValueBytes);
+
+                case 0xC7:
+                    return CIPDeviceHelper.convertBytestoUINT16LittleEndian(parameterValueBytes);
+
+                case 0xC8:
+                    return CIPDeviceHelper.convertBytestoUINT32LittleEndian(parameterValueBytes);
+
+                case 0xCA:
+                    return CIPDeviceHelper.convertBytestoFloat32LittleEndian(parameterValueBytes);
+                
+                case 0xD1:
+                    return CIPDeviceHelper.convertBytestoWORD(parameterValueBytes);
+                
+                case 0xD2:
+                    return CIPDeviceHelper.convertBytestoDWORD(parameterValueBytes);
+                
+                case 0xD3:
+                    return CIPDeviceHelper.convertBytestoQWORD(parameterValueBytes);
+
+                default:
+                    return "Unknown Parameter Type";    
+            }
+        }
+
+        public bool parameterSupportsEnumberatedStrings(byte[] CIPStandardDescriptor){
+            return (CIPStandardDescriptor[0] & (1 << 1)) != 0;
+        }
+
+        public bool parameterReadOnly(byte[] CIPStandardDescriptor){
+            return (CIPStandardDescriptor[0] & (1 << 4)) != 0;
+        }
+
+        public bool parameterMonitorOnly(byte[] CIPStandardDescriptor){
+            return (CIPStandardDescriptor[0] & (1 << 5)) != 0;
+        }
+
 
     }
 }
