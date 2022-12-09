@@ -11,7 +11,6 @@ namespace powerFlexBackup.cipdevice
             setDeviceIsGeneric();
             setParameterClassID(0x0F);
             setInstanceAttributes();
-            Console.WriteLine((JsonConvert.SerializeObject(getIdentityObject()))); 
         }
 
         public override void setInstanceAttributes(int instance = 0){

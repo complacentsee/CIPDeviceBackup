@@ -26,6 +26,10 @@ namespace powerFlexBackup.cipdevice{
                                 9, 
                                 "powerFlexBackup.cipdevice.CIPDevice_PowerFlex525"));
 
+            this.CIPDeviceMap.Add(new CIPDeviceMap(151, 
+                                9, 
+                                "powerFlexBackup.cipdevice.CIPDevice_PowerFlex525"));
+
             this.CIPDeviceMap.Add(new CIPDeviceMap(123, 
                                 50, 
                                 "powerFlexBackup.cipdevice.CIPDevice_PowerFlex70"));

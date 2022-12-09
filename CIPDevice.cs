@@ -23,8 +23,14 @@ namespace powerFlexBackup.cipdevice
             var rawIdentityObject = getRawIdentiyObject();
             this.parentIdentityObject = parentIdentityObject.getIdentityObjectfromResponse(rawIdentityObject);
 
+            if(Globals.outputVerbose){
+                Console.WriteLine("Device Identity Object:");
+                Console.WriteLine(JsonConvert.SerializeObject(this.parentIdentityObject, Formatting.Indented));
+            }
+
             this.parameterObject = new List<DeviceParameterObject>();
             this.parameterObject.Add(new DeviceParameterObject(0x0F,this.parentIdentityObject, new List<DeviceParameter>()));
+
         }
         
         private static void registerDeviceAddress(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient)
@@ -102,8 +108,13 @@ namespace powerFlexBackup.cipdevice
         }
 
         public int getAttributeIDfromString(String attributeName, int instance = 0)
-        {
-            return this.parameterObject[instance].instanceAttributes.Find(x => x.Name.Equals(attributeName))!.AttributeID;
+        {   try{
+                return this.parameterObject[instance].instanceAttributes.Find(x => x.Name.Equals(attributeName))!.AttributeID;
+            }
+            catch{
+                Console.WriteLine("Attribute {0} not found in instance {1}", attributeName, instance);
+                return 0;
+            }
         }
 
         public abstract void getDeviceParameterValues();

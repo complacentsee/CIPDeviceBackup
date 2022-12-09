@@ -41,6 +41,7 @@ namespace powerFlexBackup.cipdevice
             parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(21, "Decimal Precision"));
         }
 
+        //FIXME: Create rules for saving these paramters. 
         public string parameterListJSON = @"[
                     {
                         'number': 1,

@@ -35,13 +35,11 @@ namespace powerFlexBackup.cipdevice{
 
         public static String convertBytestoUSINT8(byte[] parameterValueBytes)
         {
-            return BitConverter.ToUInt16(parameterValueBytes).ToString();
+            return Convert.ToString(Convert.ToUInt16(parameterValueBytes[0]));
         }
 
         public static String convertBytestoINT8(byte[] parameterValueBytes)
         {
-            // var parameterValue = (sbyte) (parameterValueBytes[0]);
-            // return Convert.ToString(Convert.ToInt16(parameterValue));
             return BitConverter.ToInt16(parameterValueBytes).ToString();
         }
 
