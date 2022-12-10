@@ -1,21 +1,20 @@
 using System.Net.NetworkInformation;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using powerFlexBackup.cipdevice;
+using powerFlexBackup.cipdevice.deviceParameterObjects;
 
 namespace powerFlexBackup
 {
 
     public class CIPDeviceFactory
     {
-        CIPDeviceDictionary DeviceDictionary;
         Sres.Net.EEIP.EEIPClient eeipClient;
         public CIPDeviceFactory(Sres.Net.EEIP.EEIPClient eeipClient)
         {
-            DeviceDictionary = new CIPDeviceDictionary();
             this.eeipClient = eeipClient;
         }
-
 
         public CIPDevice getDevicefromAddress(String hostAddress){
             
@@ -35,8 +34,9 @@ namespace powerFlexBackup
             }
             if(Globals.outputVerbose)
                 Console.WriteLine("Ping succeeded to address: {0}", hostAddress);
-                
-            this.eeipClient.RegisterSession(hostAddress);
+
+            registerSession(hostAddress);
+
             try{
                 var rawIdentityObject = getRawIdentiyObjectfromSession(this.eeipClient);
                 this.eeipClient.UnRegisterSession();
@@ -45,7 +45,11 @@ namespace powerFlexBackup
                 var productCode = getIdentiyObjectProductCodefromRaw(rawIdentityObject);
 
                 this.eeipClient.UnRegisterSession();
-                var DeviceClass = Type.GetType(DeviceDictionary.getCIPDeviceClass(deviceType, productCode));
+
+                //TESTING HERE: REMOVE AFTER REVALIDATING ALL DEVICES. 
+                //var DeviceClass = Type.GetType(DeviceDictionary.getCIPDeviceClass(deviceType, productCode));
+                var DeviceClass = getDeviceTypeClass(deviceType, productCode);
+
                 return (CIPDevice)Activator.CreateInstance(DeviceClass!, new object[] {hostAddress, eeipClient})!;
             }
             catch(Exception e){
@@ -107,7 +111,7 @@ namespace powerFlexBackup
             // Create a buffer of 32 bytes of data to be transmitted.
             string data = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
             byte[] buffer = Encoding.ASCII.GetBytes (data);
-            int timeout = 1000;
+            int timeout = Globals.connectionTimeout*1000;
             PingReply reply = pingSender.Send (address, timeout, buffer, options);
             if (reply.Status == IPStatus.Success)
             {
@@ -118,5 +122,36 @@ namespace powerFlexBackup
             }
             return false;
         }
+
+        private void registerSession(string hostAddress){
+            var task = Task.Run(() => this.eeipClient.RegisterSession(hostAddress));
+            if (task.Wait(TimeSpan.FromSeconds(Globals.connectionTimeout))){
+                if(Globals.outputVerbose)
+                    Console.WriteLine("Successfully registered CIP connection.");
+                return;
+            }
+            else
+                throw new Exception("Unable to register CIP session. Connection timed out.");
+        }
+
+
+            private Type getDeviceTypeClass(int deviceType, int productCode)
+            {  
+                var types = AppDomain.CurrentDomain.GetAssemblies()
+                                    .SelectMany(assembly => assembly.GetTypes())
+                                    .Where(type => type.IsSubclassOf(typeof(CIPDevice)));
+                foreach (var type in types){
+                    System.Attribute[] attrs = System.Attribute.GetCustomAttributes(type); 
+                    foreach (System.Attribute attr in attrs)  
+                        if (attr is SupportedDevice)  
+                        {  
+                            SupportedDevice a = (SupportedDevice)attr;
+                            if(a.map.Any(x => x.deviceType == deviceType && x.productCode == productCode))
+                                return type;
+                        }  
+                }
+                return typeof(CIPDevice_Generic);
+            }  
+        
     }
 }

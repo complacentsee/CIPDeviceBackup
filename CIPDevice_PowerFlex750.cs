@@ -4,7 +4,11 @@ using powerFlexBackup.cipdevice.deviceParameterObjects;
 
 namespace powerFlexBackup.cipdevice
 {
-    [SupportedDevice("PowerFlex 750 Series")] 
+    [SupportedDevice("PowerFlex 750 Series", 123, 1168)] 
+    [SupportedDevice("PowerFlex 750 Series", 123, 2192)] 
+    [SupportedDevice("PowerFlex 750 Series", 142, 1168)] 
+    [SupportedDevice("PowerFlex 750 Series", 142, 2192)] 
+    [SupportedDevice("PowerFlex 750 Series", 143, 2192)] 
     public class CIPDevice_PowerFlex750 : CIPDevice{
 
         List<DeviceParameter_PowerFlex750> parameterObjectList;
@@ -75,20 +79,33 @@ namespace powerFlexBackup.cipdevice
             getAllDevicePortIdentities();
             var length = parameterObject.Count;
             Console.WriteLine("Number of Device Parameter Objects: {0}", length);
-
+    
             var index = 0;
             foreach(DeviceParameterObject PortGroup in parameterObject){
+                var ClassID = 0x9F; 
+                //FIXME: This is a hack to to handle the Safe Torque Off Modules not returning paramters.
+                if(PortGroup.identityObject.ProductName.Contains("Safe Torque Off")){
+                    continue;
+                }
+                //NOTE: The 20-COMM-E does not support the 0x9F sine it is a DPI device.
+                //FIXME: We should find a more elegant way to handle this. Maybe we
+                // should detect the "Embedded service error" and then try the 0x93 class 
+                // instead of manually addressing the special case.
+                if(PortGroup.identityObject.ProductName.Contains("20-COMM-E")){
+                    ClassID = 0x93;
+                }
+
                 Console.WriteLine("Getting Parameters for {0}", PortGroup.identityObject.ProductName);
-                getAllPortParameters(portMap[PortGroup.Port].Offset, index);
+                getAllPortParameters(portMap[PortGroup.Port].Offset, index, ClassID);
                 index++;
             }
         }
 
-        private void getAllPortParameters(int offset, int instance = 0){
+        private void getAllPortParameters(int offset, int instance = 0, int ClassID = 0x9F){
             var parametersRemaning = true;
             int parameterNumber = 1;
             while(parametersRemaning){
-                var nextParameter = ByteArrayToDeviceParameter(readPF750DPIOnlineReadFull(parameterNumber + offset));
+                var nextParameter = ByteArrayToDeviceParameter(readPF750DPIOnlineReadFull(parameterNumber + offset, ClassID));
                 if (nextParameter.NextParameter < parameterNumber){
                     parametersRemaning = false;
                 }
@@ -120,10 +137,13 @@ namespace powerFlexBackup.cipdevice
             return 0;
         }
 
-        public byte[] readPF750DPIOnlineReadFull(int instanceNumber){
-            byte[] responseBytes = GetAttributeSingle(0x9F, instanceNumber, 7);
+        //Defaults to 0x9F (HOST) memory but can be changed to 0x9E (DEVICE) memory if needed.
+        public byte[] readPF750DPIOnlineReadFull(int instanceNumber, int ClassID = 0x9F){
+            byte[] responseBytes = GetAttributeSingle(ClassID, instanceNumber, 7);
             return responseBytes;
         }
+
+
 
         private DeviceParameter_PowerFlex750 ByteArrayToDeviceParameter(byte[] byteArray){
             var deviceParameter = new DeviceParameter_PowerFlex750();

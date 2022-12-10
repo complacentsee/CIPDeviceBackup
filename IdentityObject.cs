@@ -16,6 +16,7 @@ namespace powerFlexBackup.cipdevice
         public Revision revision;
         public String SerialNumber = "";
         public String ProductName = "";
+        public String Host { get; set; } = "";
 
         [JsonIgnore]
         public UInt16 Status;

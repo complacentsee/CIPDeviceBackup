@@ -64,13 +64,20 @@ namespace powerFlexBackup
                 description: "Skips pinging address prior to attempting connection. Useful for devices behind a firewalls with ICMP disabled.");
             rootCommand.AddOption(skipPingOption); 
 
+            var setConnectionTimeoutOption = new Option<int?>(
+                name: "--timeout",
+                description: "Updates default ping and CIP connection timeout to user set value in seconds.");
+                outputVerboseOption.AddAlias("-to");
+            rootCommand.AddOption(setConnectionTimeoutOption); 
+
+            //FIXME: IS THIS EVEN USED ANYMORE?
             var setParameterClassIDOption = new Option<int?>(
                 name: "--classID",
                 description: "Specify Custom Parameter ClassID.")
                 { IsHidden = true };
             rootCommand.AddOption(setParameterClassIDOption);  
 
-            rootCommand.SetHandler((hostname, outputAllParameters, outputVerbose, skipPing, file, setParameterClassID) => 
+            rootCommand.SetHandler((hostname, outputAllParameters, outputVerbose, skipPing, file, setParameterClassID, setConnectionTimeout) => 
             { 
                 address = hostname!;
 
@@ -86,11 +93,14 @@ namespace powerFlexBackup
                 if(setParameterClassID is not null)
                     classID = setParameterClassID;
 
+                if(setConnectionTimeout is not null)
+                    Globals.connectionTimeout = (int)setConnectionTimeout;
+
                 outputFile = file;
 
                 mainProgram();
             },
-            hostOption, outputAllParametersOption, outputVerboseOption, skipPingOption, fileOption, setParameterClassIDOption);
+            hostOption, outputAllParametersOption, outputVerboseOption, skipPingOption, fileOption, setParameterClassIDOption, setParameterClassIDOption);
             
             rootCommand.Invoke(args);
 
@@ -132,6 +142,7 @@ namespace powerFlexBackup
                 }
                 catch(Exception e){
                     Globals.logger.LogError(e.Message);
+                    Thread.Sleep(500);
                     return;
                 } 
 
@@ -140,7 +151,7 @@ namespace powerFlexBackup
                 return;
             }
 
-            static string getSupportedDevices()  
+            static string getSupportedDevices()
             {  
  
             var types = AppDomain.CurrentDomain.GetAssemblies()
@@ -150,16 +161,26 @@ namespace powerFlexBackup
             String supportedDevices = "";
 
             foreach (var type in types){
-                // Using reflection.  
-                System.Attribute[] attrs = System.Attribute.GetCustomAttributes(type);  // Reflection.  
-        
-                // Displaying output.  
+                System.Attribute[] attrs = System.Attribute.GetCustomAttributes(type);  
+                var firstDeviceShown = false;
+                var firstSupportedDeviceDetails = false;
                 foreach (System.Attribute attr in attrs)  
                 {  
                     if (attr is SupportedDevice)  
-                    {  
+                    {   
                         SupportedDevice a = (SupportedDevice)attr;  
-                        supportedDevices +=  Environment.NewLine + a.GetSupprtedDeviceType();
+                        if(!firstDeviceShown){
+                            firstDeviceShown = true;
+                            supportedDevices +=  Environment.NewLine + "   " + a.GetSupprtedDeviceType();
+                        }
+                        var SupportedDeviceDetails = a.GetSupprtedDeviceDetails();
+                        if (SupportedDeviceDetails != null){
+                            if(!firstSupportedDeviceDetails){
+                                firstSupportedDeviceDetails = true;
+                                supportedDevices +=  ":";
+                            }
+                            supportedDevices +=  Environment.NewLine + "      " + a.GetSupprtedDeviceDetails();
+                        }
                     }  
                 }  
             }
@@ -174,6 +195,8 @@ namespace powerFlexBackup
     public static bool outputAllRecords { get; set; } = false;
     public static bool outputVerbose { get; set; } = false;
     public static bool skipPing { get; set; } = false;
+
+    public static int connectionTimeout { get; set; } = 3;
 
     // create a logger factory
     public static ILoggerFactory loggerFactory = LoggerFactory.Create(

@@ -1,9 +1,9 @@
-using Newtonsoft.Json;
 using powerFlexBackup.cipdevice.deviceParameterObjects;
+using powerFlexBackup.notifications;
 
 namespace powerFlexBackup.cipdevice
 {
-    [SupportedDevice("Generic CIP Devices")] 
+    [SupportedDevice("Generic CIP Devices", new int(), new int())] 
     public class CIPDevice_Generic : CIPDevice{
         public CIPDevice_Generic(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient) :
             base(deviceAddress, eeipClient)
@@ -11,6 +11,8 @@ namespace powerFlexBackup.cipdevice
             setDeviceIsGeneric();
             setParameterClassID(0x0F);
             setInstanceAttributes();
+            notification.sendNotificationOnNewDeviceIdentity(this.getIdentityObject(), deviceAddress);
+            Console.WriteLine("Generic CIP Device Created");
         }
 
         public override void setInstanceAttributes(int instance = 0){

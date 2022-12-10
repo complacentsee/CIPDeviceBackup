@@ -138,7 +138,7 @@ namespace powerFlexBackup.cipdevice
                             Parameter.value = getParameterValuefromBytes(parameterValue,Parameter.type);
                             byte[] defaultParameterValue = readDeviceParameterDefaultValue(Parameter.number);
                             Parameter.defaultValue = getParameterValuefromBytes(defaultParameterValue,Parameter.type);
-                            Parameter.Descriptor = readDeviceParameterDescriptor(Parameter.number).ToString()!;
+                            Parameter.Descriptor = Convert.ToHexString(readDeviceParameterDescriptor(Parameter.number));
 
                             Parameter.valueHex = Convert.ToHexString(parameterValue);
                             Parameter.typeHex = Convert.ToHexString(Parameter.type);
@@ -167,6 +167,7 @@ namespace powerFlexBackup.cipdevice
                 var parameterType = readDeviceParameterType(parameterNumber);
                 var parameterValue = readDeviceParameterValue(parameterNumber);
                 var defaultParameterValue = readDeviceParameterDefaultValue(parameterNumber);
+                var defaultParameterValueString = getParameterValuefromBytes(defaultParameterValue,parameterType);
                 var parameterValueString = getParameterValuefromBytes(parameterValue,parameterType);
                 var parameterDescriptor = readDeviceParameterDescriptor(parameterNumber);
 
@@ -179,7 +180,7 @@ namespace powerFlexBackup.cipdevice
                 }
 
                 //FIXME: IMPROVE CONSTRUCTOR FOR DeviceParameter
-                var parameter = new DeviceParameter(parameterNumber,parameterName,parameterValueString,Convert.ToHexString(parameterType),true,parameterType);
+                var parameter = new DeviceParameter(parameterNumber,parameterName,parameterValueString,defaultParameterValueString,true,parameterType);
                 parameter.valueHex = Convert.ToHexString(parameterValue);
                 parameter.typeHex = Convert.ToHexString(parameterType);
                 parameter.Descriptor = parameterDescriptor.ToString()!;
