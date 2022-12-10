@@ -9,19 +9,21 @@ namespace powerFlexBackup.cipdevice.deviceParameterObjects{
         private string supprtedDeviceType;
         public int deviceType;
         public int productCode;
+        private bool optmizedPolling;
         public List<CIPDeviceMap> map = new List<CIPDeviceMap>();
     
-        public SupportedDevice(string supprtedDeviceType, int deviceType, int productCode)  
+        public SupportedDevice(string supprtedDeviceType, int deviceType, int productCode, bool optmizedPolling = false)  
         {  
             this.supprtedDeviceType = supprtedDeviceType;
             this.deviceType = deviceType;
             this.productCode = productCode;
+            this.optmizedPolling = optmizedPolling;
             this.map = new List<CIPDeviceMap>();
             this.map.Add(new CIPDeviceMap(deviceType, productCode));
         }  
         public string GetSupprtedDeviceType()  
         {  
-            return supprtedDeviceType;
+            return supprtedDeviceType + (optmizedPolling?" - supports optimized polling":"");
         }  
 
         public string? GetSupprtedDeviceDetails()  

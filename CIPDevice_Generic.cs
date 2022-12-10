@@ -1,5 +1,4 @@
 using powerFlexBackup.cipdevice.deviceParameterObjects;
-using powerFlexBackup.notifications;
 
 namespace powerFlexBackup.cipdevice
 {
@@ -11,7 +10,6 @@ namespace powerFlexBackup.cipdevice
             setDeviceIsGeneric();
             setParameterClassID(0x0F);
             setInstanceAttributes();
-            notification.sendNotificationOnNewDeviceIdentity(this.getIdentityObject(), deviceAddress);
             Console.WriteLine("Generic CIP Device Created");
         }
 

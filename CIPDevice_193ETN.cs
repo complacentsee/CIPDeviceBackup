@@ -3,7 +3,7 @@ using powerFlexBackup.cipdevice.deviceParameterObjects;
 
 namespace powerFlexBackup.cipdevice
 {    
-    [SupportedDevice("E1/193-ETN Ethernet Starters", 3, 300)] 
+    [SupportedDevice("E1/193-ETN Ethernet Starters", 3, 300, true)] 
     public class CIPDevice_193ETN : CIPDevice{
         public CIPDevice_193ETN(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient) :
             base(deviceAddress, eeipClient)

@@ -46,12 +46,23 @@ namespace powerFlexBackup.cipdevice
         }
 
         public override void getDeviceParameterValues(){
-            //TODO: Implement
+            //TODO: Implement actual function isntead of handing off to all device parameters.
+            // Ipement a method to load the parameter object list with the correct parameters for a given device.
+            // this can be a reduced list of only record records for each parameter type. 
+            // Known device types so far, 27 module types are available.
+            // PowerFlex 753 
+            // PowerFlex 755
+            // 20-COMM-E
+            // DeviceLogix
+            // I/O Module 24V (multiple types are available)
+            // I/O Module 125V (multiple types are available)
+            // EtherNet/IP
             getAllDeviceParameters();
         }
 
         public void getAllDevicePortIdentities(int ClassID = 0x0F, int instance = 0){
             //PowerFlex 750 does not support max count of components. 
+            //Instead check each port for a valid device. Port will report it if it empty. 
             for (int i = 2; i < 16; i++)
             {
                 try {
@@ -62,6 +73,8 @@ namespace powerFlexBackup.cipdevice
                     } catch (Exception e) {
                         Console.WriteLine("Error getting Identity Object from instance {0}: {1}", i, e.Message);
                     }
+
+                    // SKIP empty port data collection and HIM modules. Maybe HIM modules should be collected?
                     bool deviceIsHIM = IdentityObject.ProductName.Contains("HIM") || IdentityObject.ProductCode == 767; 
                     bool portIsEmpty = IdentityObject.ProductName.Contains("Not") || IdentityObject.ProductCode == 65280;
 
@@ -84,12 +97,13 @@ namespace powerFlexBackup.cipdevice
             foreach(DeviceParameterObject PortGroup in parameterObject){
                 var ClassID = 0x9F; 
                 //FIXME: This is a hack to to handle the Safe Torque Off Modules not returning paramters.
+                // Need to test if they are parameter objects or not.
                 if(PortGroup.identityObject.ProductName.Contains("Safe Torque Off")){
                     continue;
                 }
                 //NOTE: The 20-COMM-E does not support the 0x9F sine it is a DPI device.
-                //FIXME: We should find a more elegant way to handle this. Maybe we
-                // should detect the "Embedded service error" and then try the 0x93 class 
+                //TODO: Should find a more elegant way to handle this. Maybe we
+                // should catch the "Embedded service error" and then try the 0x93 class 
                 // instead of manually addressing the special case.
                 if(PortGroup.identityObject.ProductName.Contains("20-COMM-E")){
                     ClassID = 0x93;
@@ -119,6 +133,7 @@ namespace powerFlexBackup.cipdevice
                 param.type = nextParameter.Descriptor.dataType;
                 param.typeHex = Convert.ToHexString(nextParameter.Descriptor.dataType);
                 param.isWritable = nextParameter.Descriptor.Writable;
+                // determine to record based on if the parameter is writable.
                 param.record = nextParameter.Descriptor.Writable;
 
                 parameterObject[instance].ParameterList.Add(param);

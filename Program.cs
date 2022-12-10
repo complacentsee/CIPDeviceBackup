@@ -70,7 +70,6 @@ namespace powerFlexBackup
                 outputVerboseOption.AddAlias("-to");
             rootCommand.AddOption(setConnectionTimeoutOption); 
 
-            //FIXME: IS THIS EVEN USED ANYMORE?
             var setParameterClassIDOption = new Option<int?>(
                 name: "--classID",
                 description: "Specify Custom Parameter ClassID.")
@@ -100,7 +99,7 @@ namespace powerFlexBackup
 
                 mainProgram();
             },
-            hostOption, outputAllParametersOption, outputVerboseOption, skipPingOption, fileOption, setParameterClassIDOption, setParameterClassIDOption);
+            hostOption, outputAllParametersOption, outputVerboseOption, skipPingOption, fileOption, setParameterClassIDOption, setConnectionTimeoutOption);
             
             rootCommand.Invoke(args);
 

@@ -136,9 +136,11 @@ namespace powerFlexBackup.cipdevice
 
                             byte[] parameterValue = readDeviceParameterValue(Parameter.number);
                             Parameter.value = getParameterValuefromBytes(parameterValue,Parameter.type);
-                            byte[] defaultParameterValue = readDeviceParameterDefaultValue(Parameter.number);
-                            Parameter.defaultValue = getParameterValuefromBytes(defaultParameterValue,Parameter.type);
-                            Parameter.Descriptor = Convert.ToHexString(readDeviceParameterDescriptor(Parameter.number));
+
+                            if(Parameter.defaultValue is null){
+                                byte[] defaultParameterValue = readDeviceParameterDefaultValue(Parameter.number);
+                                Parameter.defaultValue = getParameterValuefromBytes(defaultParameterValue,Parameter.type);
+                            }
 
                             Parameter.valueHex = Convert.ToHexString(parameterValue);
                             Parameter.typeHex = Convert.ToHexString(Parameter.type);
@@ -159,6 +161,9 @@ namespace powerFlexBackup.cipdevice
         public abstract void getAllDeviceParameters();
 
         public void getAllDeviceParametersCIPStandardCompliant(int instance = 0){
+            //clear existing parameter list incase one was loaded from class
+            parameterObject[instance].ParameterList.Clear();
+
             var maxParameterNumber = readDeviceParameterMaxNumber();
             for(int i = 1; i <= maxParameterNumber; i++)
             {
@@ -183,7 +188,7 @@ namespace powerFlexBackup.cipdevice
                 var parameter = new DeviceParameter(parameterNumber,parameterName,parameterValueString,defaultParameterValueString,true,parameterType);
                 parameter.valueHex = Convert.ToHexString(parameterValue);
                 parameter.typeHex = Convert.ToHexString(parameterType);
-                parameter.Descriptor = parameterDescriptor.ToString()!;
+                parameter.Descriptor = Convert.ToHexString(parameterDescriptor);
                 parameter.isWritable = !parameterReadOnly(parameterDescriptor);
                 parameterObject[instance].ParameterList.Add(parameter);
             }
