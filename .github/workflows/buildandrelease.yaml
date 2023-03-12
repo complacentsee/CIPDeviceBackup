@@ -37,7 +37,7 @@ jobs:
           release_name="App-$tag-${{ matrix.target }}"      
 
           # Build everything
-          dotnet publish --framework netcoreapp3.1 --runtime "${{ matrix.target }}" -c Release -o "$release_name"
+          dotnet publish -p:PublishSingleFile=true --self-contained true --runtime "${{ matrix.target }}" -c Release -o "$release_name"
           # Pack files
           if [ "${{ matrix.target }}" == "win-x64" ]; then
             # Pack to zip for Windows
