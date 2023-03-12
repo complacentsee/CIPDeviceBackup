@@ -33,5 +33,4 @@ jobs:
           dotnet-quality: 'preview'
       - name: Build Releases
         uses: actions/setup-dotnet@v3
-        with:
-          - run: dotnet publish --configuration Release -p:PublishSingleFile=true --runtime ${{ matrix.target }} --self-contained true --output $release_name
+        run: dotnet publish --configuration Release -p:PublishSingleFile=true --runtime ${{ matrix.target }} --self-contained true --output $release_name
