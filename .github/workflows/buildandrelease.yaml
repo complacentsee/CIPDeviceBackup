@@ -26,12 +26,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - uses: actions/setup-dotnet@v3
       - name: Setup dotnet
+        uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '7.x'
           dotnet-quality: 'preview'
       - name: Build Releases
+        uses: actions/setup-dotnet@v3
         with:
           command: dotnet
           arguments: publish --configuration Release -p:PublishSingleFile=true --runtime ${{ matrix.target }} --self-contained true --output $release_name
