@@ -33,18 +33,42 @@ jobs:
           dotnet-quality: 'preview'
       - name: Build projects
         run: |
-          tag=$(git rev-parse --short "$GITHUB_SHA")
-          release_name="App-$tag-${{ matrix.target }}"      
+          if [ -n "$PSVersionTable" ]; then
+                    # Running on Windows using PowerShell
+                    $tag = git rev-parse --short $env:GITHUB_SHA
+                    $release_name = "App-$tag-win-x64"
 
-          # Build everything
-          dotnet publish -p:PublishSingleFile=true --self-contained true --runtime "${{ matrix.target }}" -c Release -o "$release_name"
-          # Pack files
-          if [ "${{ matrix.target }}" == "win-x64" ]; then
-            # Pack to zip for Windows
-            7z a -tzip "${release_name}.zip" "./${release_name}/*"
+                    # Build everything
+                    dotnet publish -p:PublishSingleFile=true --self-contained true --runtime "win-x64" -c Release -o $release_name
+
+                    # Pack files
+                    if ("win-x64" -eq "win-x64") {
+                              # Pack to zip for Windows
+                              & 7z a -tzip "$($release_name).zip" "$($release_name)\*"
+                    } else {
+                              echo "Unknown platform"
+                              exit 1
+                    }
+
+                    # Delete output directory
+                    Remove-Item -Recurse $release_name
           else
-          tar czvf "${release_name}.tar.gz" "$release_name"
-          fi
-          # Delete output directory
-          rm -r "$release_name"
+                    # Running on Unix using Bash
+                    tag=$(git rev-parse --short "$GITHUB_SHA")
+                    release_name="App-$tag-win-x64"
 
+                    # Build everything
+                    dotnet publish -p:PublishSingleFile=true --self-contained true --runtime "win-x64" -c Release -o "$release_name"
+
+                    # Pack files
+                    if [ "win-x64" == "win-x64" ]; then
+                              # Pack to zip for Windows
+                              7z a -tzip "${release_name}.zip" "./${release_name}/*"
+                    else
+                              echo "Unknown platform"
+                              exit 1
+                    }
+
+                    # Delete output directory
+                    rm -r "$release_name"
+          fi
