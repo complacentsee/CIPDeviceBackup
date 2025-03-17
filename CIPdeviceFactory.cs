@@ -16,7 +16,7 @@ namespace powerFlexBackup
             this.eeipClient = eeipClient;
         }
 
-        public CIPDevice getDevicefromAddress(String hostAddress){
+        public CIPDevice getDevicefromAddress(String hostAddress, string route){
             
             if(Globals.outputVerbose)
                 Console.WriteLine("Attempting to connect to device at address: {0}...", hostAddress);
@@ -38,7 +38,12 @@ namespace powerFlexBackup
             registerSession(hostAddress);
 
             try{
-                var rawIdentityObject = getRawIdentiyObjectfromSession(this.eeipClient);
+                byte[] rawIdentityObject;
+                if (route != null){
+                    rawIdentityObject = getRawIdentiyObjectfromSession(this.eeipClient, route);
+                } else {
+                    rawIdentityObject = getRawIdentiyObjectfromSession(this.eeipClient);
+                }
                 this.eeipClient.UnRegisterSession();
 
                 var deviceType = getIdentiyObjectDeviceTypefromRaw(rawIdentityObject);
@@ -61,6 +66,12 @@ namespace powerFlexBackup
         private static byte[] getRawIdentiyObjectfromSession(Sres.Net.EEIP.EEIPClient eeipClient)
         {
             return eeipClient.GetAttributeAll(0x01, 1);
+        }
+
+        private static byte[] getRawIdentiyObjectfromSession(Sres.Net.EEIP.EEIPClient eeipClient, string route)
+        {
+            Sres.Net.EEIP.CIPRoute cipRoute = Sres.Net.EEIP.CIPRoute.Parse(route);
+            return eeipClient.GetAttributeAll(cipRoute, 0x01, 1);
         }
 
         private static int getIdentiyObjectDeviceTypefromRaw(byte[] rawIdentityObject)

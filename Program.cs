@@ -15,6 +15,7 @@ namespace powerFlexBackup
             var applicationVersion = Assembly.GetEntryAssembly()?.GetName()?.Version?.ToString();
 
             String address = "";
+            string cipRoute = null;
             FileInfo? outputFile = null;
             int? classID = null;
 
@@ -27,6 +28,11 @@ namespace powerFlexBackup
                 name: "--host",
                 description: "The host to read and record parameters from."){ IsRequired = true };
             rootCommand.AddOption(hostOption);  
+
+            var routeOption = new Option<String?>(
+                name: "--CIProute",
+                description: "The CIP route for the device to read and record parameters from."){ IsRequired = false };
+            rootCommand.AddOption(routeOption);  
 
             var fileOption = new Option<FileInfo?>(
                 name: "--output",
@@ -76,9 +82,11 @@ namespace powerFlexBackup
                 { IsHidden = true };
             rootCommand.AddOption(setParameterClassIDOption);  
 
-            rootCommand.SetHandler((hostname, outputAllParameters, outputVerbose, skipPing, file, setParameterClassID, setConnectionTimeout) => 
+            rootCommand.SetHandler((hostname, route, outputAllParameters, outputVerbose, skipPing, file, setParameterClassID, setConnectionTimeout) => 
             { 
                 address = hostname!;
+
+                cipRoute = route!;
 
                 if(outputAllParameters == true)
                     Globals.outputAllRecords = true;
@@ -99,7 +107,7 @@ namespace powerFlexBackup
 
                 mainProgram();
             },
-            hostOption, outputAllParametersOption, outputVerboseOption, skipPingOption, fileOption, setParameterClassIDOption, setConnectionTimeoutOption);
+            hostOption, routeOption, outputAllParametersOption, outputVerboseOption, skipPingOption, fileOption, setParameterClassIDOption, setConnectionTimeoutOption);
             
             rootCommand.Invoke(args);
 
@@ -109,7 +117,7 @@ namespace powerFlexBackup
                 CIPDeviceFactory cipDeviceFactory = new CIPDeviceFactory(eeipClient);
 
                 try{
-                    CIPDevice cipDevice =  cipDeviceFactory.getDevicefromAddress(address);
+                    CIPDevice cipDevice =  cipDeviceFactory.getDevicefromAddress(address, cipRoute);
                     if(Globals.outputVerbose)
                         Console.WriteLine("Getting device parameters from upload...");
 
