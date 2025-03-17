@@ -51,6 +51,8 @@ namespace powerFlexBackup
 
                 this.eeipClient.UnRegisterSession();
 
+
+                Console.WriteLine("deviceType {0}, productCode {1}", deviceType, productCode);
                 //TESTING HERE: REMOVE AFTER REVALIDATING ALL DEVICES. 
                 //var DeviceClass = Type.GetType(DeviceDictionary.getCIPDeviceClass(deviceType, productCode));
                 var DeviceClass = getDeviceTypeClass(deviceType, productCode);
