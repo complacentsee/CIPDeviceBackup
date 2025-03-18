@@ -72,7 +72,7 @@ namespace powerFlexBackup
 
         private static byte[] getRawIdentiyObjectfromSession(Sres.Net.EEIP.EEIPClient eeipClient, string route)
         {
-            Sres.Net.EEIP.CIPRoute cipRoute = Sres.Net.EEIP.CIPRoute.Parse(route);
+            byte[] cipRoute = Sres.Net.EEIP.CIPRouteBuilder.ParsePath(route);
             return eeipClient.GetAttributeAll(cipRoute, 0x01, 1);
         }
 
