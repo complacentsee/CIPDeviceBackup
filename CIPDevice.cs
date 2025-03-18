@@ -11,12 +11,14 @@ namespace powerFlexBackup.cipdevice
         public List<DeviceParameterObject> parameterObject;
         private Sres.Net.EEIP.EEIPClient eeipClient;
         private String deviceAddress;
+        private byte[] CIPRoute;
         private bool deviceIsGeneric = false;
 
-        public CIPDevice(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient)
+        public CIPDevice(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient, byte[] CIPRoute)
         {
             this.deviceAddress = deviceAddress;
             this.eeipClient = eeipClient;
+            this.CIPRoute = CIPRoute;
             this.eeipClient.RegisterSession(deviceAddress);
 
             this.parentIdentityObject = new IdentityObject();
@@ -197,65 +199,124 @@ namespace powerFlexBackup.cipdevice
 
         public abstract int readDeviceParameterMaxNumber();
         public int readDeviceParameterMaxNumberCIPStandardCompliant(int  instance = 0){
-            byte[] maxParameterNumberBytes = eeipClient.GetAttributeSingle(parameterObject[instance].ClassID, 0, 2);
+            byte[] maxParameterNumberBytes;
+            if (CIPRoute.Length > 0) {
+                maxParameterNumberBytes =eeipClient.GetAttributeSingle(CIPRoute, parameterObject[instance].ClassID, 0, 2);
+            } else {
+                maxParameterNumberBytes = eeipClient.GetAttributeSingle(parameterObject[instance].ClassID, 0, 2);
+            }
             int maxParameterNumber = Convert.ToUInt16(maxParameterNumberBytes[0]
                                                         | maxParameterNumberBytes[1] << 8);
             return maxParameterNumber;
         }
 
         public byte[] GetAttributeSingle(int classID, int instanceID, int attributeID)
-        {   try{return eeipClient.GetAttributeSingle(classID, instanceID, attributeID);}
-            catch(Exception e){
-                Console.WriteLine(e.Message);
-                return new byte[0];}
+        {   
+            if (CIPRoute.Length > 0) {
+                try{return eeipClient.GetAttributeSingle(CIPRoute, classID, instanceID, attributeID);}
+                catch(Exception e){
+                    Console.WriteLine(e.Message);
+                    return new byte[0];}
+            } else {
+                try{return eeipClient.GetAttributeSingle(classID, instanceID, attributeID);}
+                catch(Exception e){
+                    Console.WriteLine(e.Message);
+                    return new byte[0];}    
+            }
         }
 
         private String readDeviceParameterName(int parameterNumber, int instance = 0){
-            try{
-                byte[] parameterNameBytes = eeipClient.GetAttributeSingle(parameterObject[instance].ClassID, parameterNumber, getAttributeIDfromString("Parameter Name String"));
-                String parameterName = System.Text.Encoding.ASCII.GetString(parameterNameBytes, 1, Convert.ToInt32(parameterNameBytes[0])).TrimEnd();
-                return parameterName;
-            }
-            catch(Exception e){
-                Console.WriteLine(e.Message);
-                return "";
+            if (CIPRoute.Length > 0) {
+                try{
+                    byte[] parameterNameBytes = eeipClient.GetAttributeSingle(CIPRoute, parameterObject[instance].ClassID, parameterNumber, getAttributeIDfromString("Parameter Name String"));
+                    String parameterName = System.Text.Encoding.ASCII.GetString(parameterNameBytes, 1, Convert.ToInt32(parameterNameBytes[0])).TrimEnd();
+                    return parameterName;
+                }
+                catch(Exception e){
+                    Console.WriteLine(e.Message);
+                    return "";
+                }
+            } else {
+                try{
+                    byte[] parameterNameBytes = eeipClient.GetAttributeSingle(parameterObject[instance].ClassID, parameterNumber, getAttributeIDfromString("Parameter Name String"));
+                    String parameterName = System.Text.Encoding.ASCII.GetString(parameterNameBytes, 1, Convert.ToInt32(parameterNameBytes[0])).TrimEnd();
+                    return parameterName;
+                }
+                catch(Exception e){
+                    Console.WriteLine(e.Message);
+                    return "";
+                }
             }
         }
 
         private byte[] getRawIdentiyObject()
         {
-            return this.eeipClient.GetAttributeAll(0x01, 1);
+            if (CIPRoute.Length > 0 ){
+                return this.eeipClient.GetAttributeAll(CIPRoute, 0x01, 1);
+            } else {
+                return this.eeipClient.GetAttributeAll(0x01, 1);
+            }
         }
 
 
         private byte[] readDeviceParameterValue(int parameterNumber)
         {
-            return this.eeipClient.GetAttributeSingle(getDeviceParameterClassID(),parameterNumber, getAttributeIDfromString("Parameter Value"));
+            if (CIPRoute.Length > 0 ){
+                return this.eeipClient.GetAttributeSingle(CIPRoute, getDeviceParameterClassID(),parameterNumber, getAttributeIDfromString("Parameter Value"));
+            } else {
+                return this.eeipClient.GetAttributeSingle(getDeviceParameterClassID(),parameterNumber, getAttributeIDfromString("Parameter Value"));
+            }
+
         }
 
         private byte[] readDeviceParameterDescriptor(int parameterNumber)
         {
-            return this.eeipClient.GetAttributeSingle(getDeviceParameterClassID(),parameterNumber, getAttributeIDfromString("Descriptor"));
+            if (CIPRoute.Length > 0 ){
+                return this.eeipClient.GetAttributeSingle(CIPRoute, getDeviceParameterClassID(),parameterNumber, getAttributeIDfromString("Descriptor"));  
+            }
+            else {
+                return this.eeipClient.GetAttributeSingle(getDeviceParameterClassID(),parameterNumber, getAttributeIDfromString("Descriptor"));  
+            }
         }
 
         private byte[] readDeviceParameterDefaultValue(int parameterNumber)
         {
-            return this.eeipClient.GetAttributeSingle(getDeviceParameterClassID(),parameterNumber, getAttributeIDfromString("Default Value"));
+            if (CIPRoute.Length > 0 ){
+                return this.eeipClient.GetAttributeSingle(CIPRoute, getDeviceParameterClassID(),parameterNumber, getAttributeIDfromString("Default Value")); 
+            }
+            else {
+                return this.eeipClient.GetAttributeSingle(getDeviceParameterClassID(),parameterNumber, getAttributeIDfromString("Default Value"));
+            }
         }
 
         private byte[] readDeviceParameterType(int parameterNumber)
         {
-            return this.eeipClient.GetAttributeSingle(getDeviceParameterClassID(),parameterNumber, getAttributeIDfromString("Data Type"));
+            if (CIPRoute.Length > 0 ){
+                return this.eeipClient.GetAttributeSingle(CIPRoute, getDeviceParameterClassID(),parameterNumber, getAttributeIDfromString("Data Type"));
+            }
+            else {
+                return this.eeipClient.GetAttributeSingle(getDeviceParameterClassID(),parameterNumber, getAttributeIDfromString("Data Type"));
+            }
         }
 
         private byte[] readDeviceParameterSize(int parameterNumber)
         {
-            return this.eeipClient.GetAttributeSingle(getDeviceParameterClassID(),parameterNumber, getAttributeIDfromString("Data Size"));
+            if (CIPRoute.Length > 0 ){
+                return this.eeipClient.GetAttributeSingle(CIPRoute, getDeviceParameterClassID(),parameterNumber, getAttributeIDfromString("Data Size"));
+            }
+            else {
+                return this.eeipClient.GetAttributeSingle(getDeviceParameterClassID(),parameterNumber, getAttributeIDfromString("Data Size"));
+            }
         }
 
         public byte[] getRawIdentiyObjectfromInstance(int instance)
         {
-            return eeipClient.GetAttributeAll(0x01, instance);
+            if (CIPRoute.Length > 0 ){
+                return eeipClient.GetAttributeAll(CIPRoute, 0x01, instance);
+            }
+            else {
+                return eeipClient.GetAttributeAll(0x01, instance);
+            }
         }
 
         public string getParameterValuefromBytes(byte[] parameterValueBytes, byte[] type)

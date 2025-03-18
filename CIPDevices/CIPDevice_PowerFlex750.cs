@@ -13,8 +13,8 @@ namespace powerFlexBackup.cipdevice
 
         List<DeviceParameter_PowerFlex750> parameterObjectList;
         List<PortParameterMap> portMap;
-        public CIPDevice_PowerFlex750(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient) :
-            base(deviceAddress, eeipClient)
+        public CIPDevice_PowerFlex750(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient, byte[] CIPRoute) :
+            base(deviceAddress, eeipClient, CIPRoute)
         {
             setInstanceAttributes();
             parameterObjectList = new List<DeviceParameter_PowerFlex750>();

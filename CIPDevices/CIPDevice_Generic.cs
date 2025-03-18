@@ -4,8 +4,8 @@ namespace powerFlexBackup.cipdevice
 {
     [SupportedDevice("Generic CIP Devices", new int(), new int())] 
     public class CIPDevice_Generic : CIPDevice{
-        public CIPDevice_Generic(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient) :
-            base(deviceAddress, eeipClient)
+        public CIPDevice_Generic(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient, byte[] CIPRoute) :
+            base(deviceAddress, eeipClient, CIPRoute)
         {
             setDeviceIsGeneric();
             setParameterClassID(0x0F);

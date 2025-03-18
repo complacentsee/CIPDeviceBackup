@@ -116,8 +116,14 @@ namespace powerFlexBackup
                 EEIPClient eeipClient = new Sres.Net.EEIP.EEIPClient();
                 CIPDeviceFactory cipDeviceFactory = new CIPDeviceFactory(eeipClient);
 
+                byte[] CIPRouteBytes = [];
+                if (cipRoute != null){
+                    CIPRouteBytes = Sres.Net.EEIP.CIPRouteBuilder.ParsePath(cipRoute);
+                }
+
+
                 try{
-                    CIPDevice cipDevice =  cipDeviceFactory.getDevicefromAddress(address, cipRoute);
+                    CIPDevice cipDevice =  cipDeviceFactory.getDevicefromAddress(address, CIPRouteBytes);
                     if(Globals.outputVerbose)
                         Console.WriteLine("Getting device parameters from upload...");
 
