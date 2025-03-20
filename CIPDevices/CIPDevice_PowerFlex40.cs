@@ -5,8 +5,8 @@ namespace powerFlexBackup.cipdevice
 {
     [SupportedDevice("PowerFlex 40 Series", 127,  40, true)] 
     public class CIPDevice_PowerFlex40 : CIPDevice{
-        public CIPDevice_PowerFlex40(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient) :
-            base(deviceAddress, eeipClient)
+        public CIPDevice_PowerFlex40(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient, byte[] CIPRoute) :
+            base(deviceAddress, eeipClient, CIPRoute)
         {
             setParameterClassID(0x0F);
             setInstanceAttributes();

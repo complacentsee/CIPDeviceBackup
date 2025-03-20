@@ -16,7 +16,7 @@ namespace powerFlexBackup
             this.eeipClient = eeipClient;
         }
 
-        public CIPDevice getDevicefromAddress(String hostAddress, string route){
+        public CIPDevice getDevicefromAddress(String hostAddress, byte[] route){
             
             if(Globals.outputVerbose)
                 Console.WriteLine("Attempting to connect to device at address: {0}...", hostAddress);
@@ -39,7 +39,7 @@ namespace powerFlexBackup
 
             try{
                 byte[] rawIdentityObject;
-                if (route != null){
+                if (route.Length > 0){
                     rawIdentityObject = getRawIdentiyObjectfromSession(this.eeipClient, route);
                 } else {
                     rawIdentityObject = getRawIdentiyObjectfromSession(this.eeipClient);
@@ -49,13 +49,12 @@ namespace powerFlexBackup
                 var deviceType = getIdentiyObjectDeviceTypefromRaw(rawIdentityObject);
                 var productCode = getIdentiyObjectProductCodefromRaw(rawIdentityObject);
 
-                this.eeipClient.UnRegisterSession();
-
+                Console.WriteLine("deviceType {0}, productCode {1}", deviceType, productCode);
                 //TESTING HERE: REMOVE AFTER REVALIDATING ALL DEVICES. 
                 //var DeviceClass = Type.GetType(DeviceDictionary.getCIPDeviceClass(deviceType, productCode));
                 var DeviceClass = getDeviceTypeClass(deviceType, productCode);
 
-                return (CIPDevice)Activator.CreateInstance(DeviceClass!, new object[] {hostAddress, eeipClient})!;
+                return (CIPDevice)Activator.CreateInstance(DeviceClass!, new object[] {hostAddress, eeipClient, route})!;
             }
             catch(Exception e){
                 Globals.logger.LogError("Unable to create device object: {0}", e.Message);
@@ -68,10 +67,9 @@ namespace powerFlexBackup
             return eeipClient.GetAttributeAll(0x01, 1);
         }
 
-        private static byte[] getRawIdentiyObjectfromSession(Sres.Net.EEIP.EEIPClient eeipClient, string route)
+        private static byte[] getRawIdentiyObjectfromSession(Sres.Net.EEIP.EEIPClient eeipClient, byte[] route)
         {
-            Sres.Net.EEIP.CIPRoute cipRoute = Sres.Net.EEIP.CIPRoute.Parse(route);
-            return eeipClient.GetAttributeAll(cipRoute, 0x01, 1);
+            return eeipClient.GetAttributeAll(route, 0x01, 1);
         }
 
         private static int getIdentiyObjectDeviceTypefromRaw(byte[] rawIdentityObject)

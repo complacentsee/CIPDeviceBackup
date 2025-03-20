@@ -4,16 +4,12 @@ using powerFlexBackup.cipdevice.deviceParameterObjects;
 
 namespace powerFlexBackup.cipdevice
 {
-    [SupportedDevice("PowerFlex 750 Series", 123, 1168)] 
-    [SupportedDevice("PowerFlex 750 Series", 123, 2192)] 
-    [SupportedDevice("PowerFlex 750 Series", 142, 1168)] 
-    [SupportedDevice("PowerFlex 750 Series", 142, 2192)] 
-    [SupportedDevice("PowerFlex 750 Series", 143, 2192)] 
-    public class CIPDevice_PowerFlex750 : CIPDevice{
+    [SupportedDevice("PowerFlex 750TS Series", 143, 7568)] 
+    public class CIPDevice_PowerFlex750TS : CIPDevice{
 
         List<DeviceParameter_PowerFlex750> parameterObjectList;
         List<PortParameterMap> portMap;
-        public CIPDevice_PowerFlex750(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient, byte[] CIPRoute) :
+        public CIPDevice_PowerFlex750TS(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient, byte[] CIPRoute) :
             base(deviceAddress, eeipClient, CIPRoute)
         {
             setInstanceAttributes();
@@ -96,6 +92,9 @@ namespace powerFlexBackup.cipdevice
             var index = 0;
             foreach(DeviceParameterObject PortGroup in parameterObject){
                 var ClassID = 0x9F; 
+
+                Console.WriteLine("Parameter Object Index: {0}, Name: {1}",index, PortGroup.identityObject.ProductName);
+
                 //FIXME: This is a hack to to handle the Safe Torque Off Modules not returning paramters.
                 // Need to test if they are parameter objects or not.
                 if(PortGroup.identityObject.ProductName.Contains("Safe Torque Off")){
@@ -108,7 +107,7 @@ namespace powerFlexBackup.cipdevice
                 if(PortGroup.identityObject.ProductName.Contains("20-COMM-E")){
                     ClassID = 0x93;
                 }
-
+        
                 Console.WriteLine("Getting Parameters for {0}", PortGroup.identityObject.ProductName);
                 getAllPortParameters(portMap[PortGroup.Port].Offset, index, ClassID);
                 index++;
@@ -119,7 +118,12 @@ namespace powerFlexBackup.cipdevice
             var parametersRemaning = true;
             int parameterNumber = 1;
             while(parametersRemaning){
-                var nextParameter = ByteArrayToDeviceParameter(readPF750DPIOnlineReadFull(parameterNumber + offset, ClassID));
+                DeviceParameter_PowerFlex750 nextParameter;
+                if (offset < 0x6800){
+                    nextParameter = ByteArrayToDeviceParameter(readPF750DPIOnlineReadFull(parameterNumber + offset, ClassID));
+                } else {
+                    nextParameter = ByteArrayToDeviceParameter(readPF750DPIOnlineReadFull(parameterNumber + offset, ClassID));
+                }
                 if (nextParameter.NextParameter < parameterNumber){
                     parametersRemaning = false;
                 }
@@ -158,7 +162,10 @@ namespace powerFlexBackup.cipdevice
             return responseBytes;
         }
 
-
+        public byte[] readPF750DPIOfflineReadFull(int instanceNumber, int ClassID = 0x9F){
+            byte[] responseBytes = GetAttributeSingle(ClassID, instanceNumber, 6);
+            return responseBytes;
+        }
 
         private DeviceParameter_PowerFlex750 ByteArrayToDeviceParameter(byte[] byteArray){
             var deviceParameter = new DeviceParameter_PowerFlex750();
