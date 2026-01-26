@@ -1,0 +1,4 @@
+[submodule "lib/EEIP.NET"]
+	path = lib/EEIP.NET
+	url = https://github.com/complacentsee/EEIP.NET.git
+	branch = main

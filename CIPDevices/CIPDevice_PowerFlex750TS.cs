@@ -15,21 +15,21 @@ namespace powerFlexBackup.cipdevice
             setInstanceAttributes();
             parameterObjectList = new List<DeviceParameter_PowerFlex750>();
             portMap = new List<PortParameterMap>();
-            portMap.Add(new PortParameterMap(0, 0x0000));
-            portMap.Add(new PortParameterMap(1, 0x4400));
-            portMap.Add(new PortParameterMap(2, 0x4800));
-            portMap.Add(new PortParameterMap(3, 0x4C00));
-            portMap.Add(new PortParameterMap(4, 0x5000));
-            portMap.Add(new PortParameterMap(5, 0x5400));
-            portMap.Add(new PortParameterMap(6, 0x5800));
-            portMap.Add(new PortParameterMap(7, 0x5C00));
-            portMap.Add(new PortParameterMap(8, 0x6000));
-            portMap.Add(new PortParameterMap(9, 0x6400));
-            portMap.Add(new PortParameterMap(10, 0x6800));
-            portMap.Add(new PortParameterMap(11, 0x6C00));
-            portMap.Add(new PortParameterMap(12, 0x7000));
-            portMap.Add(new PortParameterMap(13, 0x7400));
-            portMap.Add(new PortParameterMap(14, 0x7800));
+            portMap.Add(new PortParameterMap(0,  0x0000));
+            portMap.Add(new PortParameterMap(1,  0x1000));
+            portMap.Add(new PortParameterMap(2,  0x2000));
+            portMap.Add(new PortParameterMap(3,  0x3000));
+            portMap.Add(new PortParameterMap(4,  0x4000));
+            portMap.Add(new PortParameterMap(5,  0x5000));
+            portMap.Add(new PortParameterMap(6,  0x6000));
+            portMap.Add(new PortParameterMap(7,  0x7000));
+            portMap.Add(new PortParameterMap(8,  0x8000));
+            portMap.Add(new PortParameterMap(9,  0x9000));
+            portMap.Add(new PortParameterMap(10, 0xA000));
+            portMap.Add(new PortParameterMap(11, 0xB000));
+            portMap.Add(new PortParameterMap(12, 0xC000));
+            portMap.Add(new PortParameterMap(13, 0xD000));
+            portMap.Add(new PortParameterMap(14, 0xE000));
 
         }
 
