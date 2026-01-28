@@ -1,47 +1,73 @@
-name: Build on push to main
+name: Build and Release
 
 on:
   push:
     branches:
       - 'main'
+    tags:
+      - 'v*' # Triggers on version tags
+
+permissions:
+  contents: write
 
 jobs:
   release:
-    name: Release
+    name: Build & Release
     strategy:
       fail-fast: false
       matrix:
         include:
-          - kind: linux
+          - target: linux-x64
             os: ubuntu-latest
-            target: linux-x64
-          - kind: windows
+          - target: win-x64
             os: windows-latest
-            target: win-x64
-          - kind: macOS
+          - target: osx-x64
             os: macos-latest
-            target: osx-x64
+          - target: osx-arm64
+            os: macos-14
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Checkout (with submodules)
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: recursive
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
-      - name: Restore
-        run: dotnet restore
-      - name: Build Releases
+
+      - name: Build and Package
         shell: bash
         run: |
-          tag="$(git rev-parse --short "$GITHUB_SHA")"
-          release_name="App-$tag-${{ matrix.target }}"
+          # Detect version from tag or fallback to short SHA
+          VERSION="${GITHUB_REF_NAME}"
+          if [[ $GITHUB_REF != refs/tags/* ]]; then
+            VERSION="dev-$(git rev-parse --short HEAD)"
+          fi
+          
+          ARTIFACT_NAME="CIPDeviceBackup-$VERSION-${{ matrix.target }}"
+          
           dotnet publish \
             --configuration Release \
             --runtime "${{ matrix.target }}" \
             --self-contained true \
             -p:PublishSingleFile=true \
-            --output "$release_name"
+            -p:DebugType=None \
+            --output "./publish"
+
+          if [[ "${{ matrix.target }}" == "win-x64" ]]; then
+            7z a "$ARTIFACT_NAME.zip" ./publish/*
+          else
+            tar -czvf "$ARTIFACT_NAME.tar.gz" -C ./publish .
+          fi
+
+      - name: Upload to Release
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "$GITHUB_REF_NAME" CIPDeviceBackup-*-${{ matrix.target }}.* --clobber || \
+          gh release create "$GITHUB_REF_NAME" CIPDeviceBackup-*-${{ matrix.target }}.* --generate-notes
