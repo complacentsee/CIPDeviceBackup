@@ -12,6 +12,15 @@ namespace powerFlexBackup
     public class CIPDeviceFactory
     {
         Sres.Net.EEIP.EEIPClient eeipClient;
+
+        // Static cache for device types - initialized once on first access
+        private static readonly Lazy<List<Type>> _deviceTypes = new Lazy<List<Type>>(() =>
+            AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(assembly => assembly.GetTypes())
+                .Where(type => type.IsSubclassOf(typeof(CIPDevice)) && !type.IsAbstract)
+                .ToList()
+        );
+
         public CIPDeviceFactory(Sres.Net.EEIP.EEIPClient eeipClient)
         {
             this.eeipClient = eeipClient;
@@ -147,10 +156,7 @@ namespace powerFlexBackup
 
             private Type getDeviceTypeClass(int deviceType, int productCode)
             {
-                var types = AppDomain.CurrentDomain.GetAssemblies()
-                                    .SelectMany(assembly => assembly.GetTypes())
-                                    .Where(type => type.IsSubclassOf(typeof(CIPDevice)));
-                foreach (var type in types){
+                foreach (var type in _deviceTypes.Value){
                     System.Attribute[] attrs = System.Attribute.GetCustomAttributes(type);
                     foreach (System.Attribute attr in attrs)
                         if (attr is SupportedDevice)
@@ -165,13 +171,10 @@ namespace powerFlexBackup
 
             public static string GetSupportedDevicesDisplay()
             {
-                var types = AppDomain.CurrentDomain.GetAssemblies()
-                                    .SelectMany(assembly => assembly.GetTypes())
-                                    .Where(type => type.IsSubclassOf(typeof(CIPDevice)));
 
                 String supportedDevices = "";
 
-                foreach (var type in types){
+                foreach (var type in _deviceTypes.Value){
                     System.Attribute[] attrs = System.Attribute.GetCustomAttributes(type);
                     var firstDeviceShown = false;
                     var firstSupportedDeviceDetails = false;
