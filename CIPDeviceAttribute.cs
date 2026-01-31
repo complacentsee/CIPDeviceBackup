@@ -23,7 +23,7 @@ namespace powerFlexBackup.cipdevice.deviceParameterObjects{
         }  
         public string GetSupprtedDeviceType()  
         {  
-            return supprtedDeviceType + (optmizedPolling?" - supports optimized polling":"");
+            return supprtedDeviceType + (optmizedPolling?" - (supports optimized polling)":"");
         }  
 
         public string? GetSupprtedDeviceDetails()  
