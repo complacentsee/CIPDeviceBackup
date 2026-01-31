@@ -15,7 +15,7 @@ namespace powerFlexBackup
             var applicationVersion = Assembly.GetEntryAssembly()?.GetName()?.Version?.ToString();
 
             String address = "";
-            string cipRoute = null;
+            string? cipRoute = null;
             FileInfo? outputFile = null;
             int? classID = null;
 
