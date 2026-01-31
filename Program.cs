@@ -21,7 +21,6 @@ namespace powerFlexBackup
             FileInfo? outputFile = null;
             int? classID = null;
 
-            //TODO: Try to populate the list of supported devices automatically and print to console.
             var rootCommand = new RootCommand(String.Format("Application to record Ethernet CIP device parameters and save to file." +
                                                             "\nSupported Devices: {0}" +
                                                             "\nVersion {1}", CIPDeviceFactory.GetSupportedDevicesDisplay(), applicationVersion));
