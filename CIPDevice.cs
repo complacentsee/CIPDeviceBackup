@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using powerFlexBackup.cipdevice.deviceParameterObjects;
 
@@ -13,19 +14,28 @@ namespace powerFlexBackup.cipdevice
         private String deviceAddress;
         private byte[] CIPRoute;
         private bool deviceIsGeneric = false;
+        protected readonly AppConfiguration config;
+        protected readonly ILogger logger;
 
-        public CIPDevice(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient, byte[] CIPRoute)
+        public CIPDevice(
+            String deviceAddress,
+            Sres.Net.EEIP.EEIPClient eeipClient,
+            byte[] CIPRoute,
+            IOptions<AppConfiguration> options,
+            ILogger logger)
         {
             this.deviceAddress = deviceAddress;
             this.eeipClient = eeipClient;
             this.CIPRoute = CIPRoute;
+            this.config = options.Value;
+            this.logger = logger;
             this.eeipClient.RegisterSession(deviceAddress);
 
             this.parentIdentityObject = new IdentityObject();
             var rawIdentityObject = getRawIdentiyObject();
-            this.parentIdentityObject = parentIdentityObject.getIdentityObjectfromResponse(rawIdentityObject);
+            this.parentIdentityObject = parentIdentityObject.getIdentityObjectfromResponse(rawIdentityObject, logger);
 
-            if(Globals.outputVerbose){
+            if(config.OutputVerbose){
                 Console.WriteLine("Device Identity Object:");
                 Console.WriteLine(JsonConvert.SerializeObject(this.parentIdentityObject, Formatting.Indented));
             }
@@ -114,7 +124,7 @@ namespace powerFlexBackup.cipdevice
                 return this.parameterObject[instance].instanceAttributes.Find(x => x.Name.Equals(attributeName))!.AttributeID;
             }
             catch(NullReferenceException){
-                Globals.logger.LogWarning("Attribute {0} not found in instance {1}", attributeName, instance);
+                logger.LogWarning("Attribute {0} not found in instance {1}", attributeName, instance);
                 return 0;
             }
         }
@@ -131,7 +141,7 @@ namespace powerFlexBackup.cipdevice
             if(parameterObject[instance].ParameterList != null){
                 foreach(DeviceParameter Parameter in parameterObject[instance].ParameterList)
                     {
-                        if(Parameter.record || Globals.outputAllRecords){
+                        if(Parameter.record || config.OutputAllRecords){
 
                             if(Parameter.type is null)
                                 Parameter.type = readDeviceParameterType(Parameter.number);
@@ -147,7 +157,7 @@ namespace powerFlexBackup.cipdevice
                             Parameter.valueHex = Convert.ToHexString(parameterValue);
                             Parameter.typeHex = Convert.ToHexString(Parameter.type);
 
-                            if(Globals.outputVerbose){
+                            if(config.OutputVerbose){
                                 Console.WriteLine("Parameter #{0}, Value: {1}, ValueByte: {2}, Type: {3}", 
                                     Parameter.number, 
                                     Parameter.value, 
@@ -178,7 +188,7 @@ namespace powerFlexBackup.cipdevice
                 var parameterValueString = getParameterValuefromBytes(parameterValue,parameterType);
                 var parameterDescriptor = readDeviceParameterDescriptor(parameterNumber);
 
-                if(Globals.outputVerbose){
+                if(config.OutputVerbose){
                     Console.WriteLine("Parameter #{0}, Name: {1}, Value(Bytes): {2}, Type: {3}", 
                         parameterNumber, 
                         parameterName, 
@@ -210,12 +220,12 @@ namespace powerFlexBackup.cipdevice
             if (CIPRoute.Length > 0) {
                 try{return eeipClient.GetAttributeSingle(CIPRoute, classID, instanceID, attributeID);}
                 catch(Exception e){
-                    Globals.logger.LogError("Failed to get attribute single (ClassID: {0}, InstanceID: {1}, AttributeID: {2}): {3}", classID, instanceID, attributeID, e.Message);
+                    logger.LogError("Failed to get attribute single (ClassID: {0}, InstanceID: {1}, AttributeID: {2}): {3}", classID, instanceID, attributeID, e.Message);
                     return new byte[0];}
             } else {
                 try{return eeipClient.GetAttributeSingle(classID, instanceID, attributeID);}
                 catch(Exception e){
-                    Globals.logger.LogError("Failed to get attribute single (ClassID: {0}, InstanceID: {1}, AttributeID: {2}): {3}", classID, instanceID, attributeID, e.Message);
+                    logger.LogError("Failed to get attribute single (ClassID: {0}, InstanceID: {1}, AttributeID: {2}): {3}", classID, instanceID, attributeID, e.Message);
                     return new byte[0];}
             }
         }
@@ -237,7 +247,7 @@ namespace powerFlexBackup.cipdevice
                 return parameterName;
             }
             catch(Exception e){
-                Globals.logger.LogError("Failed to read parameter name for parameter {0}, instance {1}: {2}", parameterNumber, instance, e.Message);
+                logger.LogError("Failed to read parameter name for parameter {0}, instance {1}: {2}", parameterNumber, instance, e.Message);
                 return "";
             }
         }

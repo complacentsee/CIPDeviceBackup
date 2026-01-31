@@ -1,11 +1,13 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using powerFlexBackup.cipdevice.deviceParameterObjects;
 
 namespace powerFlexBackup.cipdevice
 {
-    [SupportedDevice("Generic CIP Devices", new int(), new int())] 
+    [SupportedDevice("Generic CIP Devices", new int(), new int())]
     public class CIPDevice_Generic : CIPDevice{
-        public CIPDevice_Generic(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient, byte[] CIPRoute) :
-            base(deviceAddress, eeipClient, CIPRoute)
+        public CIPDevice_Generic(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient, byte[] CIPRoute, IOptions<AppConfiguration> options, ILogger logger) :
+            base(deviceAddress, eeipClient, CIPRoute, options, logger)
         {
             setDeviceIsGeneric();
             setParameterClassID(0x0F);

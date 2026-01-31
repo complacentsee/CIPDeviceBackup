@@ -1,12 +1,14 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using powerFlexBackup.cipdevice.deviceParameterObjects;
 
 namespace powerFlexBackup.cipdevice
 {
-    [SupportedDevice("PowerFlex 40 Series", 127,  40, true)] 
+    [SupportedDevice("PowerFlex 40 Series", 127,  40, true)]
     public class CIPDevice_PowerFlex40 : CIPDevice{
-        public CIPDevice_PowerFlex40(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient, byte[] CIPRoute) :
-            base(deviceAddress, eeipClient, CIPRoute)
+        public CIPDevice_PowerFlex40(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient, byte[] CIPRoute, IOptions<AppConfiguration> options, ILogger logger) :
+            base(deviceAddress, eeipClient, CIPRoute, options, logger)
         {
             setParameterClassID(0x0F);
             setInstanceAttributes();

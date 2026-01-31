@@ -45,18 +45,18 @@ namespace powerFlexBackup.cipdevice.deviceParameterObjects
             this.size = size;
         }
         
-        public bool ShouldSerializenumber() {return record || Globals.outputAllRecords;}
-        public bool ShouldSerializename() {return record || Globals.outputAllRecords;}
-        public bool ShouldSerializevalue() {return record || Globals.outputAllRecords;}
-        public bool ShouldSerializedefaultValue() {return record || Globals.outputAllRecords;}
-        public bool ShouldSerializerecord() {return false || Globals.outputAllRecords;}
-        public bool ShouldSerializetype() {return false || Globals.outputAllRecords;}
-        public bool ShouldSerializesize() {return false || Globals.outputAllRecords;}
-        public bool ShouldSerializevalueHex() {return false || Globals.outputAllRecords;}
-        public bool ShouldSerializetypeHex() {return false || Globals.outputAllRecords;}
-        public bool ShouldSerializeisWritable() {return false || Globals.outputAllRecords;}
-        public bool ShouldSerializeisDescriptor() {return false || Globals.outputAllRecords;}
-        public bool ShouldSerializedisplayValue() {return false || Globals.outputAllRecords;}
+        public bool ShouldSerializenumber() {return record || AppConfiguration.OutputAllRecordsStatic;}
+        public bool ShouldSerializename() {return record || AppConfiguration.OutputAllRecordsStatic;}
+        public bool ShouldSerializevalue() {return record || AppConfiguration.OutputAllRecordsStatic;}
+        public bool ShouldSerializedefaultValue() {return record || AppConfiguration.OutputAllRecordsStatic;}
+        public bool ShouldSerializerecord() {return false || AppConfiguration.OutputAllRecordsStatic;}
+        public bool ShouldSerializetype() {return false || AppConfiguration.OutputAllRecordsStatic;}
+        public bool ShouldSerializesize() {return false || AppConfiguration.OutputAllRecordsStatic;}
+        public bool ShouldSerializevalueHex() {return false || AppConfiguration.OutputAllRecordsStatic;}
+        public bool ShouldSerializetypeHex() {return false || AppConfiguration.OutputAllRecordsStatic;}
+        public bool ShouldSerializeisWritable() {return false || AppConfiguration.OutputAllRecordsStatic;}
+        public bool ShouldSerializeisDescriptor() {return false || AppConfiguration.OutputAllRecordsStatic;}
+        public bool ShouldSerializedisplayValue() {return false || AppConfiguration.OutputAllRecordsStatic;}
 
     }
 }

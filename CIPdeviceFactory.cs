@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using powerFlexBackup.cipdevice;
 using powerFlexBackup.cipdevice.deviceParameterObjects;
 
@@ -11,7 +12,9 @@ namespace powerFlexBackup
 
     public class CIPDeviceFactory
     {
-        Sres.Net.EEIP.EEIPClient eeipClient;
+        private readonly Sres.Net.EEIP.EEIPClient eeipClient;
+        private readonly AppConfiguration config;
+        private readonly ILogger<CIPDeviceFactory> logger;
 
         // Static cache for device types - initialized once on first access
         private static readonly Lazy<List<Type>> _deviceTypes = new Lazy<List<Type>>(() =>
@@ -21,28 +24,33 @@ namespace powerFlexBackup
                 .ToList()
         );
 
-        public CIPDeviceFactory(Sres.Net.EEIP.EEIPClient eeipClient)
+        public CIPDeviceFactory(
+            Sres.Net.EEIP.EEIPClient eeipClient,
+            IOptions<AppConfiguration> options,
+            ILogger<CIPDeviceFactory> logger)
         {
             this.eeipClient = eeipClient;
+            this.config = options.Value;
+            this.logger = logger;
         }
 
         public CIPDevice getDevicefromAddress(String hostAddress, byte[] route){
             
-            if(Globals.outputVerbose)
+            if(config.OutputVerbose)
                 Console.WriteLine("Attempting to connect to device at address: {0}...", hostAddress);
 
             if(!IsIPv4(hostAddress)){
-                Globals.logger.LogError("Invalid IP Address");
+                logger.LogError("Invalid IP Address");
                 throw new InvalidOperationException("Invalid IP Address, skipping device.");
             }
-            if(Globals.outputVerbose)
+            if(config.OutputVerbose)
                 Console.WriteLine("Address {0} is valid. Validating connectivity...", hostAddress);
 
-            if(Globals.skipPing || !validateNetworkConnection(hostAddress)){
-                Globals.logger.LogError("Unable to ping IP Address: {0}", hostAddress);
+            if(config.SkipPing || !validateNetworkConnection(hostAddress)){
+                logger.LogError("Unable to ping IP Address: {0}", hostAddress);
                 throw new InvalidOperationException("Unable to ping device.");
             }
-            if(Globals.outputVerbose)
+            if(config.OutputVerbose)
                 Console.WriteLine("Ping succeeded to address: {0}", hostAddress);
 
             registerSession(hostAddress);
@@ -64,10 +72,10 @@ namespace powerFlexBackup
                 //var DeviceClass = Type.GetType(DeviceDictionary.getCIPDeviceClass(deviceType, productCode));
                 var DeviceClass = getDeviceTypeClass(deviceType, productCode);
 
-                return (CIPDevice)Activator.CreateInstance(DeviceClass!, new object[] {hostAddress, eeipClient, route})!;
+                return (CIPDevice)Activator.CreateInstance(DeviceClass!, new object[] {hostAddress, eeipClient, route, Options.Create(config), logger})!;
             }
             catch(Exception e){
-                Globals.logger.LogError("Unable to create device object: {0}", e.Message);
+                logger.LogError("Unable to create device object: {0}", e.Message);
                 throw new InvalidOperationException("Unable to create device object.");
             }
         }
@@ -118,7 +126,7 @@ namespace powerFlexBackup
             return true;
         }
 
-        private static bool validateNetworkConnection(string address)
+        private bool validateNetworkConnection(string address)
         {
             Ping pingSender = new Ping ();
             PingOptions options = new PingOptions ();
@@ -130,13 +138,13 @@ namespace powerFlexBackup
             // Create a buffer of 32 bytes of data to be transmitted.
             string data = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
             byte[] buffer = Encoding.ASCII.GetBytes (data);
-            int timeout = Globals.connectionTimeout*1000;
+            int timeout = this.config.ConnectionTimeout*1000;
             PingReply reply = pingSender.Send (address, timeout, buffer, options);
             if (reply.Status == IPStatus.Success)
             {
-                Globals.logger.LogDebug ("Ping Status: {0}", reply.Status);
-                Globals.logger.LogDebug ("Address: {0}", reply.Address.ToString ());
-                Globals.logger.LogDebug ("RoundTrip time: {0}", reply.RoundtripTime);
+                this.logger.LogDebug ("Ping Status: {0}", reply.Status);
+                this.logger.LogDebug ("Address: {0}", reply.Address.ToString ());
+                this.logger.LogDebug ("RoundTrip time: {0}", reply.RoundtripTime);
                 return true;
             }
             return false;
@@ -144,8 +152,8 @@ namespace powerFlexBackup
 
         private void registerSession(string hostAddress){
             var task = Task.Run(() => this.eeipClient.RegisterSession(hostAddress));
-            if (task.Wait(TimeSpan.FromSeconds(Globals.connectionTimeout))){
-                if(Globals.outputVerbose)
+            if (task.Wait(TimeSpan.FromSeconds(this.config.ConnectionTimeout))){
+                if(this.config.OutputVerbose)
                     Console.WriteLine("Successfully registered CIP connection.");
                 return;
             }

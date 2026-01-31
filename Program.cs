@@ -1,6 +1,8 @@
 ﻿using System.Reflection;
 using Sres.Net.EEIP;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using powerFlexBackup.cipdevice;
 using System.CommandLine;
@@ -79,31 +81,57 @@ namespace powerFlexBackup
             {
                 address = parseResult.GetValue(hostOption)!;
                 cipRoute = parseResult.GetValue(routeOption);
-
-                Globals.outputAllRecords = parseResult.GetValue(outputAllParametersOption) == true;
-                Globals.outputVerbose = parseResult.GetValue(outputVerboseOption) == true;
-                Globals.skipPing = parseResult.GetValue(skipPingOption) == true;
+                outputFile = parseResult.GetValue(fileOption);
 
                 var setParameterClassIDValue = parseResult.GetValue(setParameterClassIDOption);
                 if(setParameterClassIDValue is not null)
                     classID = setParameterClassIDValue;
 
-                var setConnectionTimeoutValue = parseResult.GetValue(setConnectionTimeoutOption);
-                if(setConnectionTimeoutValue is not null)
-                    Globals.connectionTimeout = (int)setConnectionTimeoutValue;
+                // Create service collection (DI container)
+                var services = new ServiceCollection();
 
-                outputFile = parseResult.GetValue(fileOption);
+                // Configure AppConfiguration from parsed command line args
+                services.Configure<AppConfiguration>(options =>
+                {
+                    options.OutputAllRecords = parseResult.GetValue(outputAllParametersOption) == true;
+                    options.OutputVerbose = parseResult.GetValue(outputVerboseOption) == true;
+                    options.SkipPing = parseResult.GetValue(skipPingOption) == true;
 
-                mainProgram();
+                    var timeoutValue = parseResult.GetValue(setConnectionTimeoutOption);
+                    if (timeoutValue is not null)
+                        options.ConnectionTimeout = (int)timeoutValue;
+                });
+
+                // Configure logging
+                services.AddLogging(builder => builder
+                    .AddConsole()
+                    .AddDebug()
+                    .SetMinimumLevel(LogLevel.Information));
+
+                // Register services
+                services.AddSingleton<EEIPClient>();
+                services.AddSingleton<CIPDeviceFactory>();
+
+                // Build the service provider
+                var serviceProvider = services.BuildServiceProvider();
+
+                // Set static property for serialization scenarios
+                var config = serviceProvider.GetRequiredService<IOptions<AppConfiguration>>().Value;
+                AppConfiguration.OutputAllRecordsStatic = config.OutputAllRecords;
+
+                mainProgram(serviceProvider);
             });
 
             var parseResult = rootCommand.Parse(args);
             return parseResult.Invoke();
 
-            void mainProgram(){
+            void mainProgram(IServiceProvider serviceProvider){
 
-                EEIPClient eeipClient = new Sres.Net.EEIP.EEIPClient();
-                CIPDeviceFactory cipDeviceFactory = new CIPDeviceFactory(eeipClient);
+                // Get services from DI container
+                var cipDeviceFactory = serviceProvider.GetRequiredService<CIPDeviceFactory>();
+                var eeipClient = serviceProvider.GetRequiredService<EEIPClient>();
+                var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
+                var config = serviceProvider.GetRequiredService<IOptions<AppConfiguration>>().Value;
 
                 byte[] CIPRouteBytes = [];
                 if (cipRoute != null){
@@ -113,21 +141,21 @@ namespace powerFlexBackup
 
                 try{
                     CIPDevice cipDevice =  cipDeviceFactory.getDevicefromAddress(address, CIPRouteBytes);
-                    if(Globals.outputVerbose)
+                    if(config.OutputVerbose)
                         Console.WriteLine("Getting device parameters from upload...");
 
                     if(classID is not null)
                         cipDevice.setParameterClassID((int)classID);
 
-                    if(!Globals.outputAllRecords){       
-                        cipDevice.getDeviceParameterValues();             
+                    if(!config.OutputAllRecords){
+                        cipDevice.getDeviceParameterValues();
                         cipDevice.removeNonRecordedDeviceParameters();
                         cipDevice.removeDefaultDeviceParameters();
                     } else{
                         cipDevice.getAllDeviceParameters();
                     }
 
-                    if(Globals.outputVerbose)
+                    if(config.OutputVerbose)
                         Console.WriteLine("Completed uploading device parameters.");
 
                     if (!System.IO.File.Exists(outputFile!.Directory!.ToString())){
@@ -141,13 +169,13 @@ namespace powerFlexBackup
                             output.WriteLine();
                         }
                     }
-                    Globals.logger.LogInformation ("File saved to {0}", outputFile!.FullName);
+                    logger.LogInformation ("File saved to {0}", outputFile!.FullName);
                 }
                 catch(Exception e){
-                    Globals.logger.LogError(e.Message);
+                    logger.LogError(e.Message);
                     Thread.Sleep(500);
                     return;
-                } 
+                }
 
                 eeipClient.UnRegisterSession();
                 Thread.Sleep(250);
@@ -155,28 +183,5 @@ namespace powerFlexBackup
             }
 
         }
-    }
-
-    public static class Globals
-    {
-    public static bool outputAllRecords { get; set; } = false;
-    public static bool outputVerbose { get; set; } = false;
-    public static bool skipPing { get; set; } = false;
-
-    public static int connectionTimeout { get; set; } = 3;
-
-    // create a logger factory
-    public static ILoggerFactory loggerFactory = LoggerFactory.Create(
-        builder => builder
-                    // add console as logging target
-                    .AddConsole()
-                    // add debug output as logging target
-                    .AddDebug()
-                    // set minimum level to log
-                    .SetMinimumLevel(LogLevel.Information)
-    );
-    // create a logger
-    public static ILogger logger = loggerFactory.CreateLogger<Program>();
-
     }
 }

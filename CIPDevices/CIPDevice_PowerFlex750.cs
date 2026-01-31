@@ -1,20 +1,21 @@
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Logging;
 using powerFlexBackup.cipdevice.deviceParameterObjects;
 
 namespace powerFlexBackup.cipdevice
 {
-    [SupportedDevice("PowerFlex 750 Series", 123, 1168)] 
-    [SupportedDevice("PowerFlex 750 Series", 123, 2192)] 
-    [SupportedDevice("PowerFlex 750 Series", 142, 1168)] 
-    [SupportedDevice("PowerFlex 750 Series", 142, 2192)] 
-    [SupportedDevice("PowerFlex 750 Series", 143, 2192)] 
+    [SupportedDevice("PowerFlex 750 Series", 123, 1168)]
+    [SupportedDevice("PowerFlex 750 Series", 123, 2192)]
+    [SupportedDevice("PowerFlex 750 Series", 142, 1168)]
+    [SupportedDevice("PowerFlex 750 Series", 142, 2192)]
+    [SupportedDevice("PowerFlex 750 Series", 143, 2192)]
     public class CIPDevice_PowerFlex750 : CIPDevice{
 
         List<DeviceParameter_PowerFlex750> parameterObjectList;
         List<PortParameterMap> portMap;
-        public CIPDevice_PowerFlex750(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient, byte[] CIPRoute) :
-            base(deviceAddress, eeipClient, CIPRoute)
+        public CIPDevice_PowerFlex750(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient, byte[] CIPRoute, IOptions<AppConfiguration> options, ILogger logger) :
+            base(deviceAddress, eeipClient, CIPRoute, options, logger)
         {
             setInstanceAttributes();
             parameterObjectList = new List<DeviceParameter_PowerFlex750>();
@@ -69,7 +70,7 @@ namespace powerFlexBackup.cipdevice
                     var IdentityObject = new IdentityObject();
                     var temp = getRawIdentiyObjectfromInstance(i); 
                     try {
-                        IdentityObject = IdentityObject.getIdentityObjectfromResponse(temp);
+                        IdentityObject = IdentityObject.getIdentityObjectfromResponse(temp, logger);
                     } catch (Exception e) {
                         Console.WriteLine("Error getting Identity Object from instance {0}: {1}", i, e.Message);
                     }
@@ -139,7 +140,7 @@ namespace powerFlexBackup.cipdevice
                 parameterObject[instance].ParameterList.Add(param);
                 parameterNumber = nextParameter.NextParameter;
 
-                if(Globals.outputVerbose){
+                if(config.OutputVerbose){
                     Console.WriteLine(JsonConvert.SerializeObject(nextParameter));
                     Console.WriteLine();    
                 }
@@ -162,7 +163,7 @@ namespace powerFlexBackup.cipdevice
 
         private DeviceParameter_PowerFlex750 ByteArrayToDeviceParameter(byte[] byteArray){
             var deviceParameter = new DeviceParameter_PowerFlex750();
-            deviceParameter.Descriptor = new Descriptor(byteArray.Take(4).ToArray());
+            deviceParameter.Descriptor = new Descriptor(byteArray.Take(4).ToArray(), logger);
             deviceParameter.ParameterValue = new Parameter_ContainerPowerFlex750(byteArray.Skip(4).Take(4).ToArray());
             deviceParameter.ParameterValue.value = this.getParameterValuefromBytes(deviceParameter.ParameterValue.toBytes(), deviceParameter.dataType);
             deviceParameter.MinimumValue = new Parameter_ContainerPowerFlex750(byteArray.Skip(8).Take(4).ToArray());
@@ -236,15 +237,16 @@ namespace powerFlexBackup.cipdevice
 
     public class Descriptor{
         public bool[] descriptor {get; set;} = new bool[32];
+        private readonly ILogger? logger;
 
-        public byte[] dataType 
+        public byte[] dataType
         {
             get
                 {
                     return this.getDataType();
                 }
         }
-        public bool Writable 
+        public bool Writable
         {
             get
                 {
@@ -254,9 +256,11 @@ namespace powerFlexBackup.cipdevice
 
         public Descriptor(){
             descriptor = new bool[32];
+            logger = null;
         }
-        public Descriptor(byte[] byteArray){
+        public Descriptor(byte[] byteArray, ILogger logger){
             this.descriptor = CIPDeviceHelper.unpackageBytesToBoolArray(byteArray);
+            this.logger = logger;
         }
 
         // MAPPING PER POWERFLEX 750 MANUAL
@@ -299,7 +303,7 @@ namespace powerFlexBackup.cipdevice
                 dataType[0] = 0xC8;
             }
             else if(descriptor[2] == true && descriptor[1] == false && descriptor[0] == true){
-                Globals.logger.LogError("TCHAR not implemented");
+                logger?.LogError("TCHAR not implemented");
                 dataType[0] = 0xC2;
             }
             else if(descriptor[2] == true && descriptor[1] == true && descriptor[0] == false){
