@@ -145,12 +145,13 @@ namespace powerFlexBackup
                         System.IO.Directory.CreateDirectory(outputFile!.Directory!.ToString());
                     }
 
-                    StreamWriter output = new StreamWriter(outputFile!.FullName);
-                    foreach(DeviceParameterObject ParameterObject in cipDevice.getParameterObject()){
-                        output.Write(JsonConvert.SerializeObject(ParameterObject,Formatting.Indented));
-                        output.WriteLine();
+                    using (StreamWriter output = new StreamWriter(outputFile!.FullName))
+                    {
+                        foreach(DeviceParameterObject ParameterObject in cipDevice.getParameterObject()){
+                            output.Write(JsonConvert.SerializeObject(ParameterObject,Formatting.Indented));
+                            output.WriteLine();
+                        }
                     }
-                    output.Close();
                     Globals.logger.LogInformation ("File saved to {0}", outputFile!.FullName);
                 }
                 catch(Exception e){
