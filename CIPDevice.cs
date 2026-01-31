@@ -113,8 +113,8 @@ namespace powerFlexBackup.cipdevice
         {   try{
                 return this.parameterObject[instance].instanceAttributes.Find(x => x.Name.Equals(attributeName))!.AttributeID;
             }
-            catch{
-                Console.WriteLine("Attribute {0} not found in instance {1}", attributeName, instance);
+            catch(NullReferenceException){
+                Globals.logger.LogWarning("Attribute {0} not found in instance {1}", attributeName, instance);
                 return 0;
             }
         }
@@ -131,7 +131,7 @@ namespace powerFlexBackup.cipdevice
             if(parameterObject[instance].ParameterList != null){
                 foreach(DeviceParameter Parameter in parameterObject[instance].ParameterList)
                     {
-                        if(Parameter.record | Globals.outputAllRecords){
+                        if(Parameter.record || Globals.outputAllRecords){
 
                             if(Parameter.type is null)
                                 Parameter.type = readDeviceParameterType(Parameter.number);
@@ -211,17 +211,17 @@ namespace powerFlexBackup.cipdevice
         }
 
         public byte[] GetAttributeSingle(int classID, int instanceID, int attributeID)
-        {   
+        {
             if (CIPRoute.Length > 0) {
                 try{return eeipClient.GetAttributeSingle(CIPRoute, classID, instanceID, attributeID);}
                 catch(Exception e){
-                    Console.WriteLine(e.Message);
+                    Globals.logger.LogError("Failed to get attribute single (ClassID: {0}, InstanceID: {1}, AttributeID: {2}): {3}", classID, instanceID, attributeID, e.Message);
                     return new byte[0];}
             } else {
                 try{return eeipClient.GetAttributeSingle(classID, instanceID, attributeID);}
                 catch(Exception e){
-                    Console.WriteLine(e.Message);
-                    return new byte[0];}    
+                    Globals.logger.LogError("Failed to get attribute single (ClassID: {0}, InstanceID: {1}, AttributeID: {2}): {3}", classID, instanceID, attributeID, e.Message);
+                    return new byte[0];}
             }
         }
 
