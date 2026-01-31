@@ -10,7 +10,7 @@ namespace powerFlexBackup
 {
     class Program
     {
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
             var applicationVersion = Assembly.GetEntryAssembly()?.GetName()?.Version?.ToString();
 
@@ -24,92 +24,86 @@ namespace powerFlexBackup
                                                             "\nSupported Devices: {0}" +
                                                             "\nVersion {1}", CIPDeviceFactory.GetSupportedDevicesDisplay(), applicationVersion));
 
-            var hostOption = new Option<String?>(
-                name: "--host",
-                description: "The host to read and record parameters from."){ IsRequired = true };
-            rootCommand.AddOption(hostOption);  
+            var hostOption = new Option<String?>("--host")
+            {
+                Description = "The host to read and record parameters from.",
+                Required = true
+            };
+            rootCommand.Add(hostOption);
 
-            var routeOption = new Option<String?>(
-                name: "--CIProute",
-                description: "The CIP route for the device to read and record parameters from."){ IsRequired = false };
-            rootCommand.AddOption(routeOption);  
+            var routeOption = new Option<String?>("--CIProute")
+            {
+                Description = "The CIP route for the device to read and record parameters from."
+            };
+            rootCommand.Add(routeOption);
 
-            var fileOption = new Option<FileInfo?>(
-                name: "--output",
-                description: "The file location to save the output.",
-                isDefault: true,
-                parseArgument: result =>
-                {
-                    if (result.Tokens.Count == 0)
-                    {
-                        return new FileInfo(@"devicebackups\parameterbackup.txt");
-                    }
-                    else
-                    {                    
-                        string filePath = result.Tokens.Single().Value;
-                        return new FileInfo(filePath);
-                    }
-                });
-                fileOption.AddAlias("-o");
-            rootCommand.AddOption(fileOption); 
+            var fileOption = new Option<FileInfo?>("--output", "-o")
+            {
+                Description = "The file location to save the output.",
+                DefaultValueFactory = _ => new FileInfo(@"devicebackups\parameterbackup.txt")
+            };
+            rootCommand.Add(fileOption);
 
-            var outputAllParametersOption = new Option<Boolean?>(
-                name: "--all",
-                description: "Collect and save all parameter values.");
-                outputAllParametersOption.AddAlias("-a");
-            rootCommand.AddOption(outputAllParametersOption);  
+            var outputAllParametersOption = new Option<Boolean?>("--all", "-a")
+            {
+                Description = "Collect and save all parameter values."
+            };
+            rootCommand.Add(outputAllParametersOption);
 
-            var outputVerboseOption = new Option<Boolean?>(
-                name: "--verbose",
-                description: "Print parameters and values to console while collecting.");
-                outputVerboseOption.AddAlias("-v");
-            rootCommand.AddOption(outputVerboseOption);  
+            var outputVerboseOption = new Option<Boolean?>("--verbose", "-v")
+            {
+                Description = "Print parameters and values to console while collecting."
+            };
+            rootCommand.Add(outputVerboseOption);
 
-            var skipPingOption = new Option<Boolean?>(
-                name: "--noping",
-                description: "Skips pinging address prior to attempting connection. Useful for devices behind a firewalls with ICMP disabled.");
-            rootCommand.AddOption(skipPingOption); 
+            var skipPingOption = new Option<Boolean?>("--noping")
+            {
+                Description = "Skips pinging address prior to attempting connection. Useful for devices behind a firewalls with ICMP disabled."
+            };
+            rootCommand.Add(skipPingOption);
 
-            var setConnectionTimeoutOption = new Option<int?>(
-                name: "--timeout",
-                description: "Updates default ping and CIP connection timeout to user set value in seconds.");
-                outputVerboseOption.AddAlias("-to");
-            rootCommand.AddOption(setConnectionTimeoutOption); 
+            var setConnectionTimeoutOption = new Option<int?>("--timeout", "-to")
+            {
+                Description = "Updates default ping and CIP connection timeout to user set value in seconds."
+            };
+            rootCommand.Add(setConnectionTimeoutOption);
 
-            var setParameterClassIDOption = new Option<int?>(
-                name: "--classID",
-                description: "Specify Custom Parameter ClassID.")
-                { IsHidden = true };
-            rootCommand.AddOption(setParameterClassIDOption);  
+            var setParameterClassIDOption = new Option<int?>("--classID")
+            {
+                Description = "Specify Custom Parameter ClassID.",
+                Hidden = true
+            };
+            rootCommand.Add(setParameterClassIDOption);
 
-            rootCommand.SetHandler((hostname, route, outputAllParameters, outputVerbose, skipPing, file, setParameterClassID, setConnectionTimeout) => 
-            { 
-                address = hostname!;
+            rootCommand.SetAction((ParseResult parseResult) =>
+            {
+                address = parseResult.GetValue(hostOption)!;
+                cipRoute = parseResult.GetValue(routeOption);
 
-                cipRoute = route!;
-
-                if(outputAllParameters == true)
+                if(parseResult.GetValue(outputAllParametersOption) == true)
                     Globals.outputAllRecords = true;
 
-                if(outputVerbose == true)
+                if(parseResult.GetValue(outputVerboseOption) == true)
                     Globals.outputVerbose = true;
 
-                if(skipPing == true)
+                if(parseResult.GetValue(skipPingOption) == true)
                     Globals.skipPing = true;
 
-                if(setParameterClassID is not null)
-                    classID = setParameterClassID;
+                var setParameterClassIDValue = parseResult.GetValue(setParameterClassIDOption);
+                if(setParameterClassIDValue is not null)
+                    classID = setParameterClassIDValue;
 
-                if(setConnectionTimeout is not null)
-                    Globals.connectionTimeout = (int)setConnectionTimeout;
+                var setConnectionTimeoutValue = parseResult.GetValue(setConnectionTimeoutOption);
+                if(setConnectionTimeoutValue is not null)
+                    Globals.connectionTimeout = (int)setConnectionTimeoutValue;
 
-                outputFile = file;
+                outputFile = parseResult.GetValue(fileOption);
 
                 mainProgram();
-            },
-            hostOption, routeOption, outputAllParametersOption, outputVerboseOption, skipPingOption, fileOption, setParameterClassIDOption, setConnectionTimeoutOption);
-            
-            rootCommand.Invoke(args);
+            });
+
+            var parseResult = rootCommand.Parse(args);
+            return parseResult.Invoke();
 
             void mainProgram(){
 
