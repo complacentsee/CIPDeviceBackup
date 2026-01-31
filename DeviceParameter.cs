@@ -45,18 +45,18 @@ namespace powerFlexBackup.cipdevice.deviceParameterObjects
             this.size = size;
         }
         
-        public bool ShouldSerializenumber() {return record | Globals.outputAllRecords;}
-        public bool ShouldSerializename() {return record | Globals.outputAllRecords;}
-        public bool ShouldSerializevalue() {return record | Globals.outputAllRecords;}
-        public bool ShouldSerializedefaultValue() {return record | Globals.outputAllRecords;}
-        public bool ShouldSerializerecord() {return false | Globals.outputAllRecords;}
-        public bool ShouldSerializetype() {return false | Globals.outputAllRecords;}
-        public bool ShouldSerializesize() {return false | Globals.outputAllRecords;}
-        public bool ShouldSerializevalueHex() {return false | Globals.outputAllRecords;}
-        public bool ShouldSerializetypeHex() {return false | Globals.outputAllRecords;}
-        public bool ShouldSerializeisWritable() {return false | Globals.outputAllRecords;}
-        public bool ShouldSerializeisDescriptor() {return false | Globals.outputAllRecords;}
-        public bool ShouldSerializedisplayValue() {return false | Globals.outputAllRecords;}
+        public bool ShouldSerializenumber() {return record || Globals.outputAllRecords;}
+        public bool ShouldSerializename() {return record || Globals.outputAllRecords;}
+        public bool ShouldSerializevalue() {return record || Globals.outputAllRecords;}
+        public bool ShouldSerializedefaultValue() {return record || Globals.outputAllRecords;}
+        public bool ShouldSerializerecord() {return false || Globals.outputAllRecords;}
+        public bool ShouldSerializetype() {return false || Globals.outputAllRecords;}
+        public bool ShouldSerializesize() {return false || Globals.outputAllRecords;}
+        public bool ShouldSerializevalueHex() {return false || Globals.outputAllRecords;}
+        public bool ShouldSerializetypeHex() {return false || Globals.outputAllRecords;}
+        public bool ShouldSerializeisWritable() {return false || Globals.outputAllRecords;}
+        public bool ShouldSerializeisDescriptor() {return false || Globals.outputAllRecords;}
+        public bool ShouldSerializedisplayValue() {return false || Globals.outputAllRecords;}
 
     }
 }
