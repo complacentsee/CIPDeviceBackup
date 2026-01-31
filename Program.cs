@@ -20,9 +20,9 @@ namespace powerFlexBackup
             int? classID = null;
 
             //TODO: Try to populate the list of supported devices automatically and print to console.
-            var rootCommand = new RootCommand(String.Format("Application to record Ethernet CIP device parameters and save to file." + 
+            var rootCommand = new RootCommand(String.Format("Application to record Ethernet CIP device parameters and save to file." +
                                                             "\nSupported Devices: {0}" +
-                                                            "\nVersion {1}", getSupportedDevices(), applicationVersion));
+                                                            "\nVersion {1}", CIPDeviceFactory.GetSupportedDevicesDisplay(), applicationVersion));
 
             var hostOption = new Option<String?>(
                 name: "--host",
@@ -164,42 +164,6 @@ namespace powerFlexBackup
                 Thread.Sleep(250);
                 return;
             }
-
-            static string getSupportedDevices()
-            {  
- 
-            var types = AppDomain.CurrentDomain.GetAssemblies()
-                                .SelectMany(assembly => assembly.GetTypes())
-                                .Where(type => type.IsSubclassOf(typeof(CIPDevice)));
-
-            String supportedDevices = "";
-
-            foreach (var type in types){
-                System.Attribute[] attrs = System.Attribute.GetCustomAttributes(type);  
-                var firstDeviceShown = false;
-                var firstSupportedDeviceDetails = false;
-                foreach (System.Attribute attr in attrs)  
-                {  
-                    if (attr is SupportedDevice)  
-                    {   
-                        SupportedDevice a = (SupportedDevice)attr;  
-                        if(!firstDeviceShown){
-                            firstDeviceShown = true;
-                            supportedDevices +=  Environment.NewLine + "   " + a.GetSupprtedDeviceType();
-                        }
-                        var SupportedDeviceDetails = a.GetSupprtedDeviceDetails();
-                        if (SupportedDeviceDetails != null){
-                            if(!firstSupportedDeviceDetails){
-                                firstSupportedDeviceDetails = true;
-                                supportedDevices +=  ":";
-                            }
-                            supportedDevices +=  Environment.NewLine + "      " + a.GetSupprtedDeviceDetails();
-                        }
-                    }  
-                }  
-            }
-            return supportedDevices;
-            }  
 
         }
     }

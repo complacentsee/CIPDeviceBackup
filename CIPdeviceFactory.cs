@@ -1,4 +1,5 @@
 using System.Net.NetworkInformation;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -145,22 +146,57 @@ namespace powerFlexBackup
 
 
             private Type getDeviceTypeClass(int deviceType, int productCode)
-            {  
+            {
                 var types = AppDomain.CurrentDomain.GetAssemblies()
                                     .SelectMany(assembly => assembly.GetTypes())
                                     .Where(type => type.IsSubclassOf(typeof(CIPDevice)));
                 foreach (var type in types){
-                    System.Attribute[] attrs = System.Attribute.GetCustomAttributes(type); 
-                    foreach (System.Attribute attr in attrs)  
-                        if (attr is SupportedDevice)  
-                        {  
+                    System.Attribute[] attrs = System.Attribute.GetCustomAttributes(type);
+                    foreach (System.Attribute attr in attrs)
+                        if (attr is SupportedDevice)
+                        {
                             SupportedDevice a = (SupportedDevice)attr;
                             if(a.map.Any(x => x.deviceType == deviceType && x.productCode == productCode))
                                 return type;
-                        }  
+                        }
                 }
                 return typeof(CIPDevice_Generic);
-            }  
-        
+            }
+
+            public static string GetSupportedDevicesDisplay()
+            {
+                var types = AppDomain.CurrentDomain.GetAssemblies()
+                                    .SelectMany(assembly => assembly.GetTypes())
+                                    .Where(type => type.IsSubclassOf(typeof(CIPDevice)));
+
+                String supportedDevices = "";
+
+                foreach (var type in types){
+                    System.Attribute[] attrs = System.Attribute.GetCustomAttributes(type);
+                    var firstDeviceShown = false;
+                    var firstSupportedDeviceDetails = false;
+                    foreach (System.Attribute attr in attrs)
+                    {
+                        if (attr is SupportedDevice)
+                        {
+                            SupportedDevice a = (SupportedDevice)attr;
+                            if(!firstDeviceShown){
+                                firstDeviceShown = true;
+                                supportedDevices +=  Environment.NewLine + "   " + a.GetSupprtedDeviceType();
+                            }
+                            var SupportedDeviceDetails = a.GetSupprtedDeviceDetails();
+                            if (SupportedDeviceDetails != null){
+                                if(!firstSupportedDeviceDetails){
+                                    firstSupportedDeviceDetails = true;
+                                    supportedDevices +=  ":";
+                                }
+                                supportedDevices +=  Environment.NewLine + "      " + a.GetSupprtedDeviceDetails();
+                            }
+                        }
+                    }
+                }
+                return supportedDevices;
+            }
+
     }
 }
