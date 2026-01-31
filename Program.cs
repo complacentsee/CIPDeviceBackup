@@ -80,14 +80,9 @@ namespace powerFlexBackup
                 address = parseResult.GetValue(hostOption)!;
                 cipRoute = parseResult.GetValue(routeOption);
 
-                if(parseResult.GetValue(outputAllParametersOption) == true)
-                    Globals.outputAllRecords = true;
-
-                if(parseResult.GetValue(outputVerboseOption) == true)
-                    Globals.outputVerbose = true;
-
-                if(parseResult.GetValue(skipPingOption) == true)
-                    Globals.skipPing = true;
+                Globals.outputAllRecords = parseResult.GetValue(outputAllParametersOption) == true;
+                Globals.outputVerbose = parseResult.GetValue(outputVerboseOption) == true;
+                Globals.skipPing = parseResult.GetValue(skipPingOption) == true;
 
                 var setParameterClassIDValue = parseResult.GetValue(setParameterClassIDOption);
                 if(setParameterClassIDValue is not null)
