@@ -196,12 +196,19 @@ namespace powerFlexBackup.cipdevice
                         Convert.ToHexString(parameterType));
                 }
 
-                //FIXME: IMPROVE CONSTRUCTOR FOR DeviceParameter
-                var parameter = new DeviceParameter(parameterNumber,parameterName,parameterValueString,defaultParameterValueString,true,parameterType);
-                parameter.valueHex = Convert.ToHexString(parameterValue);
-                parameter.typeHex = Convert.ToHexString(parameterType);
-                parameter.Descriptor = Convert.ToHexString(parameterDescriptor);
-                parameter.isWritable = !parameterReadOnly(parameterDescriptor);
+                var parameter = new DeviceParameter
+                {
+                    number = parameterNumber,
+                    name = parameterName,
+                    value = parameterValueString,
+                    defaultValue = defaultParameterValueString,
+                    record = true,
+                    type = parameterType,
+                    valueHex = Convert.ToHexString(parameterValue),
+                    typeHex = Convert.ToHexString(parameterType),
+                    Descriptor = Convert.ToHexString(parameterDescriptor),
+                    isWritable = !parameterReadOnly(parameterDescriptor)
+                };
                 parameterObject[instance].ParameterList.Add(parameter);
             }
             return; 

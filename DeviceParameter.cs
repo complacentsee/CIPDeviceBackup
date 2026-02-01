@@ -24,26 +24,6 @@ namespace powerFlexBackup.cipdevice.deviceParameterObjects
             this.defaultValue = "";
             this.record = false;
         }
-        public DeviceParameter(int number, string name, string value, string defaultValue, bool record, byte[] type)
-        {
-            this.number = number;
-            this.name = name;
-            this.value = value;
-            this.defaultValue = defaultValue;
-            this.record = record;
-            this.type = type;
-        }
-        
-        public DeviceParameter(int number, string name, string value, string defaultValue, bool record, byte[] type, byte[] size)
-        {
-            this.number = number;
-            this.name = name;
-            this.value = value;
-            this.defaultValue = defaultValue;
-            this.record = record;
-            this.type = type;
-            this.size = size;
-        }
         
         public bool ShouldSerializenumber() {return record || AppConfiguration.OutputAllRecordsStatic;}
         public bool ShouldSerializename() {return record || AppConfiguration.OutputAllRecordsStatic;}

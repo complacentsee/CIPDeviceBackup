@@ -108,18 +108,18 @@ namespace powerFlexBackup.cipdevice
                 if (nextParameter.NextParameter < parameterNumber){
                     parametersRemaning = false;
                 }
-                var param = new deviceParameterObjects.DeviceParameter();
-
-                param.number = parameterNumber;
-                param.name = nextParameter.ParameterName;
-                param.value = nextParameter.ParameterValue.value;
-                param.valueHex = Convert.ToHexString(nextParameter.ParameterValue.toBytes());
-                param.defaultValue = nextParameter.DefaultValue.value;
-                param.type = nextParameter.Descriptor.dataType;
-                param.typeHex = Convert.ToHexString(nextParameter.Descriptor.dataType);
-                param.isWritable = nextParameter.Descriptor.Writable;
-                // determine to record based on if the parameter is writable.
-                param.record = nextParameter.Descriptor.Writable;
+                var param = new deviceParameterObjects.DeviceParameter
+                {
+                    number = parameterNumber,
+                    name = nextParameter.ParameterName,
+                    value = nextParameter.ParameterValue.value,
+                    valueHex = Convert.ToHexString(nextParameter.ParameterValue.toBytes()),
+                    defaultValue = nextParameter.DefaultValue.value,
+                    type = nextParameter.Descriptor.dataType,
+                    typeHex = Convert.ToHexString(nextParameter.Descriptor.dataType),
+                    isWritable = nextParameter.Descriptor.Writable,
+                    record = nextParameter.Descriptor.Writable
+                };
 
                 parameterObject[instance].ParameterList.Add(param);
                 parameterNumber = nextParameter.NextParameter;
