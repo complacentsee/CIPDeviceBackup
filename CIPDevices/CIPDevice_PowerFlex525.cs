@@ -19,8 +19,72 @@ namespace powerFlexBackup.cipdevice
         }
 
         public override void getDeviceParameterValues(){
-            getDeviceParameterValuesCIPStandardCompliant();
+            getDeviceParameterValuesOptimized();
         }
+
+        /// <summary>
+        /// Optimized parameter reading using Scattered Read to reduce network requests
+        /// Reads multiple parameters in a single request (up to 60 at a time)
+        /// </summary>
+        private void getDeviceParameterValuesOptimized(int instance = 0)
+        {
+            if(parameterObject[instance].ParameterList == null)
+                return;
+
+            // Collect parameters that need to be read
+            var paramsToRead = new List<int>();
+            var paramsByNumber = new Dictionary<int, DeviceParameter>();
+
+            foreach(DeviceParameter parameter in parameterObject[instance].ParameterList)
+            {
+                if(parameter.record || config.OutputAllRecords)
+                {
+                    // Ensure type is set
+                    if(parameter.type is null)
+                        parameter.type = readDeviceParameterType(parameter.number);
+
+                    paramsToRead.Add(parameter.number);
+                    paramsByNumber[parameter.number] = parameter;
+                }
+            }
+
+            if(paramsToRead.Count == 0)
+                return;
+
+            logger.LogInformation("Reading {0} parameters using optimized scattered read", paramsToRead.Count);
+
+            // Use scattered read to get all parameter values
+            var parameterValues = ReadParametersScattered(paramsToRead, 93, instance);
+
+            // Update parameter values
+            foreach(var kvp in parameterValues)
+            {
+                if(paramsByNumber.TryGetValue(kvp.Key, out var parameter) && parameter.type != null)
+                {
+                    parameter.value = getParameterValuefromBytes(kvp.Value, parameter.type);
+
+                    // Read default value if not already set (still done individually for now)
+                    if(parameter.defaultValue == null)
+                    {
+                        try
+                        {
+                            byte[] defaultValue = readDeviceParameterDefaultValue(parameter.number);
+                            parameter.defaultValue = getParameterValuefromBytes(defaultValue, parameter.type);
+                        }
+                        catch
+                        {
+                            // Skip if default value read fails
+                        }
+                    }
+
+                    if(config.OutputVerbose)
+                    {
+                        Console.WriteLine($"Parameter {parameter.number} [{parameter.name}] = {parameter.value}");
+                    }
+                }
+            }
+        }
+
         public override void getAllDeviceParameters(){
             getAllDeviceParametersCIPStandardCompliant();
         }
