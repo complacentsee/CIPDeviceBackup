@@ -25,24 +25,6 @@ namespace powerFlexBackup.cipdevice
             return readDeviceParameterMaxNumberCIPStandardCompliant();
         }
 
-        public override void setInstanceAttributes(int instance = 0){
-            parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(7, "Parameter Name String"));
-            parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(8, "Units String"));
-            parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(9, "Help String"));
-            parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(10, "Minimum Value"));
-            parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(11, "Maximum Value"));
-            parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(12, "Default Value"));
-            parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(13, "Scaling Multiplier"));
-            parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(14, "Scaling Divisor"));
-            parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(15, "Scaling Base"));
-            parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(16, "Scaling Offset"));
-            parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(17, "Multiplier Link"));
-            parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(18, "Divisor Link"));
-            parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(19, "Base Link"));
-            parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(20, "Offset Link"));
-            parameterObject[instance].instanceAttributes.Add(new InstanceAttribute(21, "Decimal Precision"));
-        }
-
         public string parameterListJSON = @"[{
         'number': '1',
         'name': 'Output Freq',
