@@ -7,16 +7,234 @@ namespace powerFlexBackup.cipdevice
 {
     [SupportedDevice("PowerFlex 70 Series", 123, 50, true)]
     public class CIPDevice_PowerFlex70 : CIPDevice{
+
+        // Scattered read configuration for PowerFlex 70
+        // Uses service 0x4B, max 22 parameters, 6 bytes per parameter (3 words)
+        private const int ScatteredReadBatchSize = 22;
+        private const byte ScatteredReadServiceCode = 0x4B;
+        private const int ScatteredReadClassID = 0x93;
+        private const int ScatteredReadInstanceID = 0;
+
+        // Comm adapter parameters start at 629 - need separate batch
+        private const int CommAdapterParamStart = 629;
+
         public CIPDevice_PowerFlex70(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient, byte[] CIPRoute, IOptions<AppConfiguration> options, ILogger logger) :
             base(deviceAddress, eeipClient, CIPRoute, options, logger)
         {
             setParameterClassID(0x0F);
             setInstanceAttributes();
-            setDeviceParameterList(JsonConvert.DeserializeObject<List<DeviceParameter>>(parameterListJSON)!);         
+            setDeviceParameterList(JsonConvert.DeserializeObject<List<DeviceParameter>>(parameterListJSON)!);
         }
-        public override void getDeviceParameterValues(){
-            getDeviceParameterValuesCIPStandardCompliant();
+
+        /// <summary>
+        /// PowerFlex 70 scattered read request format:
+        /// For each parameter: UINT16 param_number + UINT16 pad + UINT16 pad (6 bytes per param)
+        /// </summary>
+        private byte[] BuildScatteredReadRequest(List<int> parameterNumbers)
+        {
+            byte[] requestData = new byte[parameterNumbers.Count * 6];
+            int offset = 0;
+
+            foreach (int paramNum in parameterNumbers)
+            {
+                requestData[offset++] = (byte)(paramNum & 0xFF);
+                requestData[offset++] = (byte)((paramNum >> 8) & 0xFF);
+                requestData[offset++] = 0;
+                requestData[offset++] = 0;
+                requestData[offset++] = 0;
+                requestData[offset++] = 0;
+            }
+
+            return requestData;
         }
+
+        /// <summary>
+        /// PowerFlex 70 scattered read response format:
+        /// For each parameter: INT16 param_number + UINT16 value_LSW + UINT16 value_MSW (6 bytes per param)
+        /// High bit set on param_number indicates error (value field contains error code)
+        /// </summary>
+        /// <param name="errorParams">List to collect parameter numbers that returned errors</param>
+        private Dictionary<int, byte[]> ParseScatteredReadResponse(byte[] response, List<int> parameterNumbers, List<int>? errorParams = null)
+        {
+            var results = new Dictionary<int, byte[]>();
+            int offset = 0;
+
+            foreach (int expectedParamNum in parameterNumbers)
+            {
+                if (offset + 6 > response.Length)
+                {
+                    logger.LogWarning("Response too short for parameter {0}", expectedParamNum);
+                    break;
+                }
+
+                // Read parameter number (INT16 - high bit indicates error)
+                short responseParamNum = (short)(response[offset] | (response[offset + 1] << 8));
+                offset += 2;
+
+                // Read 32-bit value (LSW first, then MSW)
+                byte[] value = new byte[4];
+                value[0] = response[offset++];
+                value[1] = response[offset++];
+                value[2] = response[offset++];
+                value[3] = response[offset++];
+
+                // Check for error (high bit set = negative param number)
+                if (responseParamNum < 0)
+                {
+                    int actualParamNum = responseParamNum & 0x7FFF;
+                    int errorCode = value[0] | (value[1] << 8);
+                    logger.LogWarning("Parameter {0} returned error code: {1}", actualParamNum, errorCode);
+                    errorParams?.Add(actualParamNum);
+                    continue;
+                }
+
+                if (responseParamNum != expectedParamNum)
+                {
+                    logger.LogWarning("Parameter number mismatch: expected {0}, got {1}",
+                        expectedParamNum, responseParamNum);
+                }
+
+                results[responseParamNum] = value;
+            }
+
+            return results;
+        }
+
+        public override void getDeviceParameterValues()
+        {
+            if(parameterObject[0].ParameterList == null)
+                return;
+
+            var driveParams = new List<int>();
+            var commAdapterParams = new List<int>();
+            var paramsByNumber = new Dictionary<int, DeviceParameter>();
+
+            foreach(DeviceParameter parameter in parameterObject[0].ParameterList)
+            {
+                if(parameter.record || config.OutputAllRecords)
+                {
+                    if(parameter.type is null)
+                        parameter.type = readDeviceParameterType(parameter.number);
+
+                    paramsByNumber[parameter.number] = parameter;
+
+                    // Split at comm adapter boundary
+                    if(parameter.number < CommAdapterParamStart)
+                        driveParams.Add(parameter.number);
+                    else
+                        commAdapterParams.Add(parameter.number);
+                }
+            }
+
+            if(driveParams.Count == 0 && commAdapterParams.Count == 0)
+                return;
+
+            // Process drive parameters with scattered read
+            if(driveParams.Count > 0)
+            {
+                logger.LogInformation("Reading {0} drive parameters using scattered read (batches of {1})",
+                    driveParams.Count, ScatteredReadBatchSize);
+                ProcessScatteredReadBatches(driveParams, paramsByNumber);
+            }
+
+            // Process comm adapter parameters individually (scattered read not supported)
+            if(commAdapterParams.Count > 0)
+            {
+                logger.LogInformation("Reading {0} comm adapter parameters individually",
+                    commAdapterParams.Count);
+                ProcessIndividualReads(commAdapterParams, paramsByNumber);
+            }
+        }
+
+        private void ProcessScatteredReadBatches(List<int> paramsToRead, Dictionary<int, DeviceParameter> paramsByNumber)
+        {
+            for (int i = 0; i < paramsToRead.Count; i += ScatteredReadBatchSize)
+            {
+                int count = Math.Min(ScatteredReadBatchSize, paramsToRead.Count - i);
+                var batch = paramsToRead.GetRange(i, count);
+
+                try
+                {
+                    byte[] requestData = BuildScatteredReadRequest(batch);
+                    byte[] response = SendGenericCIPMessage(
+                        ScatteredReadServiceCode,
+                        ScatteredReadClassID,
+                        ScatteredReadInstanceID,
+                        requestData
+                    );
+
+                    var batchResults = ParseScatteredReadResponse(response, batch);
+                    ApplyParameterResults(batchResults, paramsByNumber);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning("Scattered read failed for batch {0}-{1}: {2}. Falling back to individual reads.",
+                        batch[0], batch[batch.Count-1], ex.Message);
+                    ProcessIndividualReads(batch, paramsByNumber);
+                }
+            }
+        }
+
+        private void ProcessIndividualReads(List<int> paramsToRead, Dictionary<int, DeviceParameter> paramsByNumber)
+        {
+            foreach (int paramNum in paramsToRead)
+            {
+                try
+                {
+                    if(paramsByNumber.TryGetValue(paramNum, out var parameter) && parameter.type != null)
+                    {
+                        byte[] value = readDeviceParameterValue(paramNum);
+                        parameter.value = getParameterValuefromBytes(value, parameter.type);
+
+                        if(parameter.defaultValue == null)
+                        {
+                            try
+                            {
+                                byte[] defaultValue = readDeviceParameterDefaultValue(paramNum);
+                                parameter.defaultValue = getParameterValuefromBytes(defaultValue, parameter.type);
+                            }
+                            catch { }
+                        }
+
+                        if(config.OutputVerbose)
+                        {
+                            Console.WriteLine($"Parameter {parameter.number} [{parameter.name}] = {parameter.value}");
+                        }
+                    }
+                }
+                catch
+                {
+                    logger.LogWarning("Failed to read parameter {0}", paramNum);
+                }
+            }
+        }
+
+        private void ApplyParameterResults(Dictionary<int, byte[]> results, Dictionary<int, DeviceParameter> paramsByNumber)
+        {
+            foreach(var kvp in results)
+            {
+                if(paramsByNumber.TryGetValue(kvp.Key, out var parameter) && parameter.type != null)
+                {
+                    parameter.value = getParameterValuefromBytes(kvp.Value, parameter.type);
+
+                    if(parameter.defaultValue == null)
+                    {
+                        try
+                        {
+                            byte[] defaultValue = readDeviceParameterDefaultValue(parameter.number);
+                            parameter.defaultValue = getParameterValuefromBytes(defaultValue, parameter.type);
+                        }
+                        catch { }
+                    }
+
+                    if(config.OutputVerbose)
+                    {
+                        Console.WriteLine($"Parameter {parameter.number} [{parameter.name}] = {parameter.value}");
+                    }
+                }
+            }
+        }
+
         public override void getAllDeviceParameters(){
             getAllDeviceParametersCIPStandardCompliant();
         }

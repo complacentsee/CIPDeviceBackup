@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using powerFlexBackup.cipdevice.deviceParameterObjects;
+using Sres.Net.EEIP;
 
 namespace powerFlexBackup.cipdevice
 {
@@ -254,6 +255,37 @@ namespace powerFlexBackup.cipdevice
             }
         }
 
+        /// <summary>
+        /// Send a generic CIP message - allows full control over service, class, instance, and data
+        /// </summary>
+        /// <param name="serviceCode">CIP Service Code (e.g., 0x0E for Get Attribute Single, 0x32 for Scattered Read)</param>
+        /// <param name="classID">Target Class ID</param>
+        /// <param name="instanceID">Target Instance ID</param>
+        /// <param name="requestData">Request data bytes</param>
+        /// <returns>Response data bytes</returns>
+        protected byte[] SendGenericCIPMessage(byte serviceCode, int classID, int instanceID ,byte[] requestData)
+        {
+            if (CIPRoute.Length > 0) {
+                try {
+                    return eeipClient.GenericCIPMessage(CIPRoute, serviceCode, classID, instanceID, requestData);
+                }
+                catch(Exception e) {
+                    logger.LogError("Failed to send generic CIP message (Service: 0x{0:X2}, Class: 0x{1:X2}, Instance: {2}): {3}",
+                        serviceCode, classID, instanceID, e.Message);
+                    throw;
+                }
+            } else {
+                try {
+                    return eeipClient.GenericCIPMessage(serviceCode, classID, instanceID, requestData);
+                }
+                catch(Exception e) {
+                    logger.LogError("Failed to send generic CIP message (Service: 0x{0:X2}, Class: 0x{1:X2}, Instance: {2}): {3}",
+                        serviceCode, classID, instanceID, e.Message);
+                    throw;
+                }
+            }
+        }
+
         private byte[] GetAttributeAll(int classID, int instanceID)
         {
             if (CIPRoute.Length > 0) {
@@ -282,7 +314,7 @@ namespace powerFlexBackup.cipdevice
         }
 
 
-        private byte[] readDeviceParameterValue(int parameterNumber)
+        protected byte[] readDeviceParameterValue(int parameterNumber)
         {
             return GetAttributeSingle(getDeviceParameterClassID(), parameterNumber, getAttributeIDfromString("Parameter Value"));
         }
@@ -292,12 +324,12 @@ namespace powerFlexBackup.cipdevice
             return GetAttributeSingle(getDeviceParameterClassID(), parameterNumber, getAttributeIDfromString("Descriptor"));
         }
 
-        private byte[] readDeviceParameterDefaultValue(int parameterNumber)
+        protected byte[] readDeviceParameterDefaultValue(int parameterNumber)
         {
             return GetAttributeSingle(getDeviceParameterClassID(), parameterNumber, getAttributeIDfromString("Default Value"));
         }
 
-        private byte[] readDeviceParameterType(int parameterNumber)
+        protected byte[] readDeviceParameterType(int parameterNumber)
         {
             return GetAttributeSingle(getDeviceParameterClassID(), parameterNumber, getAttributeIDfromString("Data Type"));
         }
@@ -365,7 +397,5 @@ namespace powerFlexBackup.cipdevice
         public bool parameterMonitorOnly(byte[] CIPStandardDescriptor){
             return (CIPStandardDescriptor[0] & (1 << 5)) != 0;
         }
-
-
     }
 }
