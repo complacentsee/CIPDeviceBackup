@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using powerFlexBackup.cipdevice.deviceParameterObjects;
+using Sres.Net.EEIP;
 
 namespace powerFlexBackup.cipdevice
 {
@@ -254,6 +255,37 @@ namespace powerFlexBackup.cipdevice
             }
         }
 
+        /// <summary>
+        /// Send a generic CIP message - allows full control over service, class, instance, and data
+        /// </summary>
+        /// <param name="serviceCode">CIP Service Code (e.g., 0x0E for Get Attribute Single, 0x32 for Scattered Read)</param>
+        /// <param name="classID">Target Class ID</param>
+        /// <param name="instanceID">Target Instance ID</param>
+        /// <param name="requestData">Request data bytes</param>
+        /// <returns>Response data bytes</returns>
+        protected byte[] SendGenericCIPMessage(byte serviceCode, int classID, int instanceID ,byte[] requestData)
+        {
+            if (CIPRoute.Length > 0) {
+                try {
+                    return eeipClient.GenericCIPMessage(CIPRoute, serviceCode, classID, instanceID, requestData);
+                }
+                catch(Exception e) {
+                    logger.LogError("Failed to send generic CIP message (Service: 0x{0:X2}, Class: 0x{1:X2}, Instance: {2}): {3}",
+                        serviceCode, classID, instanceID, e.Message);
+                    throw;
+                }
+            } else {
+                try {
+                    return eeipClient.GenericCIPMessage(serviceCode, classID, instanceID, requestData);
+                }
+                catch(Exception e) {
+                    logger.LogError("Failed to send generic CIP message (Service: 0x{0:X2}, Class: 0x{1:X2}, Instance: {2}): {3}",
+                        serviceCode, classID, instanceID, e.Message);
+                    throw;
+                }
+            }
+        }
+
         private byte[] GetAttributeAll(int classID, int instanceID)
         {
             if (CIPRoute.Length > 0) {
@@ -282,7 +314,7 @@ namespace powerFlexBackup.cipdevice
         }
 
 
-        private byte[] readDeviceParameterValue(int parameterNumber)
+        protected byte[] readDeviceParameterValue(int parameterNumber)
         {
             return GetAttributeSingle(getDeviceParameterClassID(), parameterNumber, getAttributeIDfromString("Parameter Value"));
         }
@@ -364,122 +396,6 @@ namespace powerFlexBackup.cipdevice
 
         public bool parameterMonitorOnly(byte[] CIPStandardDescriptor){
             return (CIPStandardDescriptor[0] & (1 << 5)) != 0;
-        }
-
-
-        /// <summary>
-        /// Builds a Scattered Read request to read multiple DPI parameters
-        /// </summary>
-        /// <param name="parameterNumbers">List of parameter numbers to read</param>
-        /// <returns>Scattered read request bytes</returns>
-        protected byte[] BuildScatteredReadRequest(List<int> parameterNumbers)
-        {
-            // Scattered Read Request format:
-            // Number of parameters (2 bytes, little endian)
-            // For each parameter: parameter number (2 bytes, little endian)
-            byte[] request = new byte[2 + (parameterNumbers.Count * 2)];
-
-            // Number of parameters
-            request[0] = (byte)(parameterNumbers.Count & 0xFF);
-            request[1] = (byte)((parameterNumbers.Count >> 8) & 0xFF);
-
-            // Parameter numbers
-            for (int i = 0; i < parameterNumbers.Count; i++)
-            {
-                int offset = 2 + (i * 2);
-                request[offset] = (byte)(parameterNumbers[i] & 0xFF);
-                request[offset + 1] = (byte)((parameterNumbers[i] >> 8) & 0xFF);
-            }
-
-            return request;
-        }
-
-        /// <summary>
-        /// Parses a Scattered Read response and extracts parameter values
-        /// </summary>
-        /// <param name="response">Scattered read response bytes</param>
-        /// <param name="parameterNumbers">List of parameter numbers that were requested (in order)</param>
-        /// <returns>Dictionary mapping parameter number to value bytes</returns>
-        protected Dictionary<int, byte[]> ParseScatteredReadResponse(byte[] response, List<int> parameterNumbers)
-        {
-            var result = new Dictionary<int, byte[]>();
-            int offset = 0;
-
-            foreach (int paramNum in parameterNumbers)
-            {
-                if (offset + 4 > response.Length)
-                    break;
-
-                // Each parameter value is 4 bytes (DINT/REAL format)
-                byte[] valueBytes = new byte[4];
-                System.Buffer.BlockCopy(response, offset, valueBytes, 0, 4);
-                result[paramNum] = valueBytes;
-                offset += 4;
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Reads multiple parameter values using Scattered Read for optimized polling
-        /// Maximum 60 parameters per request to stay under 256 byte response limit
-        /// </summary>
-        /// <param name="parameterNumbers">List of parameter numbers to read</param>
-        /// <param name="classID">Class ID for DPI Parameter Object (typically 93)</param>
-        /// <param name="instance">Instance number</param>
-        /// <returns>Dictionary mapping parameter number to value bytes</returns>
-        protected Dictionary<int, byte[]> ReadParametersScattered(List<int> parameterNumbers, int classID = 93, int instance = 0)
-        {
-            var allResults = new Dictionary<int, byte[]>();
-            const int maxParamsPerRequest = 60; // 60 * 4 bytes = 240 bytes (under 256 limit)
-
-            // Process in batches
-            for (int i = 0; i < parameterNumbers.Count; i += maxParamsPerRequest)
-            {
-                int count = Math.Min(maxParamsPerRequest, parameterNumbers.Count - i);
-                var batch = parameterNumbers.GetRange(i, count);
-
-                try
-                {
-                    byte[] request = BuildScatteredReadRequest(batch);
-                    byte[] response;
-
-                    if (CIPRoute.Length > 0)
-                    {
-                        response = eeipClient.ScatteredRead(CIPRoute, request, classID, instance);
-                    }
-                    else
-                    {
-                        response = eeipClient.ScatteredRead(request, classID, instance);
-                    }
-
-                    var batchResults = ParseScatteredReadResponse(response, batch);
-                    foreach (var kvp in batchResults)
-                    {
-                        allResults[kvp.Key] = kvp.Value;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    logger.LogWarning("Scattered read failed for parameters {0}-{1}: {2}",
-                        batch[0], batch[batch.Count-1], ex.Message);
-                    // Fall back to individual reads for this batch
-                    foreach (int paramNum in batch)
-                    {
-                        try
-                        {
-                            byte[] value = readDeviceParameterValue(paramNum);
-                            allResults[paramNum] = value;
-                        }
-                        catch
-                        {
-                            // Skip parameters that fail individual read
-                        }
-                    }
-                }
-            }
-
-            return allResults;
         }
     }
 }
