@@ -7,80 +7,253 @@ namespace powerFlexBackup.cipdevice
 {
     [SupportedDevice("PowerFlex 40 Series", 127,  40, true)]
     public class CIPDevice_PowerFlex40 : CIPDevice{
+
+        // Scattered read configuration
+        private const int ScatteredReadBatchSize = 60;
+        private const byte ScatteredReadServiceCode = 0x32;
+        private const int ScatteredReadClassID = 0x93;
+        private const int ScatteredReadInstanceID = 0;
+
         public CIPDevice_PowerFlex40(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient, byte[] CIPRoute, IOptions<AppConfiguration> options, ILogger logger) :
             base(deviceAddress, eeipClient, CIPRoute, options, logger)
         {
             setParameterClassID(0x0F);
             setInstanceAttributes();
-            setDeviceParameterList(JsonConvert.DeserializeObject<List<DeviceParameter>>(parameterListJSON)!);         
-        }
-        public override void getDeviceParameterValues(){
-            getDeviceParameterValuesOptimized();
+            setDeviceParameterList(JsonConvert.DeserializeObject<List<DeviceParameter>>(parameterListJSON)!);
         }
 
         /// <summary>
-        /// Optimized parameter reading using Scattered Read to reduce network requests
-        /// Reads multiple parameters in a single request (up to 60 at a time)
+        /// Builds scattered read request for PowerFlex 40.
+        /// Format: 4 bytes per param (UINT16 param_number + UINT16 pad)
         /// </summary>
-        private void getDeviceParameterValuesOptimized(int instance = 0)
+        private byte[] BuildScatteredReadRequest(List<int> parameterNumbers)
         {
-            if(parameterObject[instance].ParameterList == null)
+            byte[] requestData = new byte[parameterNumbers.Count * 4];
+            int offset = 0;
+
+            foreach (int paramNum in parameterNumbers)
+            {
+                requestData[offset++] = (byte)(paramNum & 0xFF);
+                requestData[offset++] = (byte)((paramNum >> 8) & 0xFF);
+                requestData[offset++] = 0;
+                requestData[offset++] = 0;
+            }
+
+            return requestData;
+        }
+
+        /// <summary>
+        /// Parses scattered read response for PowerFlex 40.
+        /// Format: 4 bytes per param (UINT16 param_number + UINT16 value)
+        /// High bit on param_number indicates error (still records value)
+        /// </summary>
+        private Dictionary<int, byte[]> ParseScatteredReadResponse(byte[] response, List<int> parameterNumbers)
+        {
+            var results = new Dictionary<int, byte[]>();
+            int offset = 0;
+
+            foreach (int expectedParamNum in parameterNumbers)
+            {
+                if (offset + 4 > response.Length)
+                {
+                    logger.LogWarning("Response too short for parameter {0}", expectedParamNum);
+                    break;
+                }
+
+                // Use short to detect high bit (error flag)
+                short responseParamNum = (short)(response[offset] | (response[offset + 1] << 8));
+                offset += 2;
+
+                int actualParamNum = responseParamNum;
+
+                // Check for error (high bit set = negative param number)
+                if (responseParamNum < 0)
+                {
+                    actualParamNum = responseParamNum & 0x7FFF;
+                    logger.LogWarning("Parameter {0} returned error in scattered read", actualParamNum);
+                }
+                else if (responseParamNum != expectedParamNum)
+                {
+                    logger.LogWarning("Parameter number mismatch: expected {0}, got {1}",
+                        expectedParamNum, responseParamNum);
+                }
+
+                byte[] value = new byte[2];
+                value[0] = response[offset++];
+                value[1] = response[offset++];
+
+                results[actualParamNum] = value;
+            }
+
+            return results;
+        }
+
+        // Comm adapter parameters start at 169 - need separate batch
+        private const int CommAdapterParamStart = 169;
+
+        public override void getDeviceParameterValues()
+        {
+            if(parameterObject[0].ParameterList == null)
                 return;
 
-            // Collect parameters that need to be read
-            var paramsToRead = new List<int>();
+            var driveParams = new List<int>();
+            var commAdapterParams = new List<int>();
             var paramsByNumber = new Dictionary<int, DeviceParameter>();
 
-            foreach(DeviceParameter parameter in parameterObject[instance].ParameterList)
+            foreach(DeviceParameter parameter in parameterObject[0].ParameterList)
             {
                 if(parameter.record || config.OutputAllRecords)
                 {
-                    // Ensure type is set
                     if(parameter.type is null)
                         parameter.type = readDeviceParameterType(parameter.number);
 
-                    paramsToRead.Add(parameter.number);
                     paramsByNumber[parameter.number] = parameter;
+
+                    // Split at comm adapter boundary
+                    if(parameter.number < CommAdapterParamStart)
+                        driveParams.Add(parameter.number);
+                    else
+                        commAdapterParams.Add(parameter.number);
                 }
             }
 
-            if(paramsToRead.Count == 0)
+            if(driveParams.Count == 0 && commAdapterParams.Count == 0)
                 return;
 
-            logger.LogInformation("Reading {0} parameters using optimized scattered read", paramsToRead.Count);
-
-            // Use scattered read to get all parameter values
-            // PowerFlex 40 uses class 0x0F (15) for parameters
-            var parameterValues = ReadParametersScattered(paramsToRead, getDeviceParameterClassID(), instance);
-
-            // Update parameter values
-            foreach(var kvp in parameterValues)
+            // Process drive parameters
+            if(driveParams.Count > 0)
             {
-                if(paramsByNumber.TryGetValue(kvp.Key, out var parameter) && parameter.type != null)
-                {
-                    parameter.value = getParameterValuefromBytes(kvp.Value, parameter.type);
+                logger.LogInformation("Reading {0} drive parameters using scattered read (batches of {1})",
+                    driveParams.Count, ScatteredReadBatchSize);
+                ProcessScatteredReadBatches(driveParams, paramsByNumber);
+            }
 
-                    // Read default value if not already set (still done individually for now)
-                    if(parameter.defaultValue == null)
+            // Process comm adapter parameters individually (scattered read not supported)
+            // TODO: Make configurable for different adapter types (Ethernet, DeviceNet, ControlNet)
+            // we need to understand how to parse the comm adaptor from the route to do this.
+            if(commAdapterParams.Count > 0)
+            {
+                logger.LogInformation("Reading {0} comm adapter parameters using individual reads",
+                    commAdapterParams.Count);
+                ProcessIndividualReads(commAdapterParams, paramsByNumber);
+            }
+        }
+
+        private void ProcessScatteredReadBatches(List<int> paramsToRead, Dictionary<int, DeviceParameter> paramsByNumber)
+        {
+            for (int i = 0; i < paramsToRead.Count; i += ScatteredReadBatchSize)
+            {
+                int count = Math.Min(ScatteredReadBatchSize, paramsToRead.Count - i);
+                var batch = paramsToRead.GetRange(i, count);
+
+                try
+                {
+                    byte[] requestData = BuildScatteredReadRequest(batch);
+                    byte[] response = SendGenericCIPMessage(
+                        ScatteredReadServiceCode,
+                        ScatteredReadClassID,
+                        ScatteredReadInstanceID,
+                        requestData
+                    );
+
+                    var batchResults = ParseScatteredReadResponse(response, batch);
+
+                    foreach(var kvp in batchResults)
+                    {
+                        if(paramsByNumber.TryGetValue(kvp.Key, out var parameter) && parameter.type != null)
+                        {
+                            parameter.value = getParameterValuefromBytes(kvp.Value, parameter.type);
+
+                            if(parameter.defaultValue == null)
+                            {
+                                try
+                                {
+                                    byte[] defaultValue = readDeviceParameterDefaultValue(parameter.number);
+                                    parameter.defaultValue = getParameterValuefromBytes(defaultValue, parameter.type);
+                                }
+                                catch { }
+                            }
+
+                            if(config.OutputVerbose)
+                            {
+                                Console.WriteLine($"Parameter {parameter.number} [{parameter.name}] = {parameter.value}");
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning("Scattered read failed for batch {0}-{1}: {2}. Falling back to individual reads.",
+                        batch[0], batch[batch.Count-1], ex.Message);
+
+                    foreach (int paramNum in batch)
                     {
                         try
                         {
-                            byte[] defaultValue = readDeviceParameterDefaultValue(parameter.number);
-                            parameter.defaultValue = getParameterValuefromBytes(defaultValue, parameter.type);
+                            if(paramsByNumber.TryGetValue(paramNum, out var parameter) && parameter.type != null)
+                            {
+                                byte[] value = readDeviceParameterValue(paramNum);
+                                parameter.value = getParameterValuefromBytes(value, parameter.type);
+
+                                if(parameter.defaultValue == null)
+                                {
+                                    try
+                                    {
+                                        byte[] defaultValue = readDeviceParameterDefaultValue(paramNum);
+                                        parameter.defaultValue = getParameterValuefromBytes(defaultValue, parameter.type);
+                                    }
+                                    catch { }
+                                }
+
+                                if(config.OutputVerbose)
+                                {
+                                    Console.WriteLine($"Parameter {parameter.number} [{parameter.name}] = {parameter.value}");
+                                }
+                            }
                         }
                         catch
                         {
-                            // Skip if default value read fails
+                            logger.LogWarning("Failed to read parameter {0}", paramNum);
                         }
-                    }
-
-                    if(config.OutputVerbose)
-                    {
-                        Console.WriteLine($"Parameter {parameter.number} [{parameter.name}] = {parameter.value}");
                     }
                 }
             }
         }
+
+        private void ProcessIndividualReads(List<int> paramsToRead, Dictionary<int, DeviceParameter> paramsByNumber)
+        {
+            foreach (int paramNum in paramsToRead)
+            {
+                try
+                {
+                    if(paramsByNumber.TryGetValue(paramNum, out var parameter) && parameter.type != null)
+                    {
+                        byte[] value = readDeviceParameterValue(paramNum);
+                        parameter.value = getParameterValuefromBytes(value, parameter.type);
+
+                        if(parameter.defaultValue == null)
+                        {
+                            try
+                            {
+                                byte[] defaultValue = readDeviceParameterDefaultValue(paramNum);
+                                parameter.defaultValue = getParameterValuefromBytes(defaultValue, parameter.type);
+                            }
+                            catch { }
+                        }
+
+                        if(config.OutputVerbose)
+                        {
+                            Console.WriteLine($"Parameter {parameter.number} [{parameter.name}] = {parameter.value}");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning("Failed to read parameter {paramNum}: {message}", paramNum, ex.Message);
+                }
+            }
+        }
+
         public override void getAllDeviceParameters(){
             getAllDeviceParametersCIPStandardCompliant();
         }
