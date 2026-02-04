@@ -310,7 +310,38 @@ namespace powerFlexBackup.cipdevice
 
         private byte[] getRawIdentiyObject()
         {
-            return GetAttributeAll(0x01, 1);
+            try {
+                return GetAttributeAll(0x01, 1);
+            }
+            catch (Sres.Net.EEIP.CIPException ex) when (ex.Message.Contains("Service not supported") && CIPRoute.Length > 0) {
+                // DeviceNet routing doesn't support GetAttributeAll - fall back to individual reads
+                return getIdentityObjectViaIndividualReads();
+            }
+        }
+
+        private byte[] getIdentityObjectViaIndividualReads()
+        {
+            // Identity Object (Class 0x01) attributes
+            var vendorId = GetAttributeSingle(0x01, 1, 1);      // 2 bytes
+            var deviceType = GetAttributeSingle(0x01, 1, 2);    // 2 bytes
+            var productCode = GetAttributeSingle(0x01, 1, 3);   // 2 bytes
+            var revision = GetAttributeSingle(0x01, 1, 4);      // 2 bytes
+            var status = GetAttributeSingle(0x01, 1, 5);        // 2 bytes
+            var serialNumber = GetAttributeSingle(0x01, 1, 6);  // 4 bytes
+            var productName = GetAttributeSingle(0x01, 1, 7);   // SHORT_STRING
+
+            // Assemble same format as GetAttributeAll
+            using (var ms = new System.IO.MemoryStream())
+            {
+                ms.Write(vendorId, 0, vendorId.Length);
+                ms.Write(deviceType, 0, deviceType.Length);
+                ms.Write(productCode, 0, productCode.Length);
+                ms.Write(revision, 0, revision.Length);
+                ms.Write(status, 0, status.Length);
+                ms.Write(serialNumber, 0, serialNumber.Length);
+                ms.Write(productName, 0, productName.Length);
+                return ms.ToArray();
+            }
         }
 
 
@@ -380,6 +411,21 @@ namespace powerFlexBackup.cipdevice
                 
                 case 0xD3:
                     return CIPDeviceHelper.convertBytestoQWORD(parameterValueBytes);
+
+                // Non-standard type codes (used by 20-COMM-D DeviceNet adapter)
+                // Determined empirically from parameter value byte sizes
+                case 0x01:  // 2-byte value - treating as UINT16
+                    return CIPDeviceHelper.convertBytestoUINT16LittleEndian(parameterValueBytes);
+
+                case 0x02:  // 2-byte value - treating as INT16
+                    return CIPDeviceHelper.convertBytesToINT16LittleEndian(parameterValueBytes);
+
+                case 0x08:  // 1-byte value - treating as USINT
+                case 0x18:  // 1-byte value - treating as USINT
+                    return CIPDeviceHelper.convertBytestoUSINT8(parameterValueBytes);
+
+                case 0x09:  // 4-byte value - treating as UDINT
+                    return CIPDeviceHelper.convertBytestoUINT32LittleEndian(parameterValueBytes);
 
                 default:
                     return "Unknown Parameter Type";    

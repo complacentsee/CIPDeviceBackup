@@ -10,7 +10,7 @@ namespace powerFlexBackup.cipdevice
 
         // Scattered read configuration for PowerFlex 70
         // Uses service 0x4B, max 22 parameters, 6 bytes per parameter (3 words)
-        private const int ScatteredReadBatchSize = 22;
+        protected virtual int ScatteredReadBatchSize => 22;
         private const byte ScatteredReadServiceCode = 0x4B;
         private const int ScatteredReadClassID = 0x93;
         private const int ScatteredReadInstanceID = 0;
@@ -23,14 +23,19 @@ namespace powerFlexBackup.cipdevice
         {
             setParameterClassID(0x0F);
             setInstanceAttributes();
-            setDeviceParameterList(JsonConvert.DeserializeObject<List<DeviceParameter>>(parameterListJSON)!);
+
+            // Combine drive parameters with comm adapter parameters
+            var allParams = JsonConvert.DeserializeObject<List<DeviceParameter>>(driveParameterListJSON)!;
+            var commParams = JsonConvert.DeserializeObject<List<DeviceParameter>>(commAdapterParameterListJSON)!;
+            allParams.AddRange(commParams);
+            setDeviceParameterList(allParams);
         }
 
         /// <summary>
         /// PowerFlex 70 scattered read request format:
         /// For each parameter: UINT16 param_number + UINT16 pad + UINT16 pad (6 bytes per param)
         /// </summary>
-        private byte[] BuildScatteredReadRequest(List<int> parameterNumbers)
+        protected virtual byte[] BuildScatteredReadRequest(List<int> parameterNumbers)
         {
             byte[] requestData = new byte[parameterNumbers.Count * 6];
             int offset = 0;
@@ -243,7 +248,8 @@ namespace powerFlexBackup.cipdevice
             return readDeviceParameterMaxNumberCIPStandardCompliant();
         }
 
-        public string parameterListJSON = @"[ {
+        // Drive parameters (1-628) - common to all comm adapters
+        public string driveParameterListJSON = @"[ {
                         'number': '1',
                         'name': 'Output Freq',
                         'defaultValue': '0',
@@ -4638,7 +4644,12 @@ namespace powerFlexBackup.cipdevice
                         'defaultValue': '0',
                         'record': 'false',
                         'type': 'xg=='
-                        },
+                        }
+                        ]";
+
+        // 20-COMM-E (Ethernet) comm adapter parameters (629+)
+        // Override this in subclasses for different comm adapters (e.g., 20-COMM-D for DeviceNet)
+        protected virtual string commAdapterParameterListJSON => @"[
                         {
                         'number': '629',
                         'name': 'BOOTP',

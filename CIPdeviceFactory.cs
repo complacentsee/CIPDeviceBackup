@@ -85,7 +85,38 @@ namespace powerFlexBackup
 
         private static byte[] getRawIdentiyObjectfromSession(Sres.Net.EEIP.EEIPClient eeipClient, byte[] route)
         {
-            return eeipClient.GetAttributeAll(route, 0x01, 1);
+            try {
+                return eeipClient.GetAttributeAll(route, 0x01, 1);
+            }
+            catch (Sres.Net.EEIP.CIPException ex) when (ex.Message.Contains("Service not supported")) {
+                // DeviceNet routing doesn't support GetAttributeAll - fall back to individual reads
+                return getIdentityObjectViaIndividualReads(eeipClient, route);
+            }
+        }
+
+        private static byte[] getIdentityObjectViaIndividualReads(Sres.Net.EEIP.EEIPClient eeipClient, byte[] route)
+        {
+            // Identity Object (Class 0x01) attributes
+            var vendorId = eeipClient.GetAttributeSingle(route, 0x01, 1, 1);      // 2 bytes
+            var deviceType = eeipClient.GetAttributeSingle(route, 0x01, 1, 2);    // 2 bytes
+            var productCode = eeipClient.GetAttributeSingle(route, 0x01, 1, 3);   // 2 bytes
+            var revision = eeipClient.GetAttributeSingle(route, 0x01, 1, 4);      // 2 bytes
+            var status = eeipClient.GetAttributeSingle(route, 0x01, 1, 5);        // 2 bytes
+            var serialNumber = eeipClient.GetAttributeSingle(route, 0x01, 1, 6);  // 4 bytes
+            var productName = eeipClient.GetAttributeSingle(route, 0x01, 1, 7);   // SHORT_STRING
+
+            // Assemble same format as GetAttributeAll
+            using (var ms = new System.IO.MemoryStream())
+            {
+                ms.Write(vendorId, 0, vendorId.Length);
+                ms.Write(deviceType, 0, deviceType.Length);
+                ms.Write(productCode, 0, productCode.Length);
+                ms.Write(revision, 0, revision.Length);
+                ms.Write(status, 0, status.Length);
+                ms.Write(serialNumber, 0, serialNumber.Length);
+                ms.Write(productName, 0, productName.Length);
+                return ms.ToArray();
+            }
         }
 
         private static int getIdentiyObjectDeviceTypefromRaw(byte[] rawIdentityObject)
