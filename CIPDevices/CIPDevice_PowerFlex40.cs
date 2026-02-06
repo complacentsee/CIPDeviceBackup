@@ -14,8 +14,8 @@ namespace powerFlexBackup.cipdevice
         private const int ScatteredReadClassID = 0x93;
         private const int ScatteredReadInstanceID = 0;
 
-        public CIPDevice_PowerFlex40(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient, byte[] CIPRoute, IOptions<AppConfiguration> options, ILogger logger) :
-            base(deviceAddress, eeipClient, CIPRoute, options, logger)
+        public CIPDevice_PowerFlex40(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient, byte[] CIPRoute, IOptions<AppConfiguration> options, ILogger logger, IdentityObject identityObject) :
+            base(deviceAddress, eeipClient, CIPRoute, options, logger, identityObject)
         {
             setParameterClassID(0x0F);
             setInstanceAttributes();

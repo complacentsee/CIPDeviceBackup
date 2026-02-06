@@ -18,8 +18,8 @@ namespace powerFlexBackup.cipdevice
         // Comm adapter parameters start at 629 - need separate batch
         private const int CommAdapterParamStart = 629;
 
-        public CIPDevice_PowerFlex70(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient, byte[] CIPRoute, IOptions<AppConfiguration> options, ILogger logger) :
-            base(deviceAddress, eeipClient, CIPRoute, options, logger)
+        public CIPDevice_PowerFlex70(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient, byte[] CIPRoute, IOptions<AppConfiguration> options, ILogger logger, IdentityObject identityObject) :
+            base(deviceAddress, eeipClient, CIPRoute, options, logger, identityObject)
         {
             setParameterClassID(0x0F);
             setInstanceAttributes();

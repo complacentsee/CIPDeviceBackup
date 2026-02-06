@@ -7,8 +7,8 @@ namespace powerFlexBackup.cipdevice
 {
     [SupportedDevice("E300 Ethernet Starters", 3, 651, true)]
     public class CIPDevice_E300 : CIPDevice{
-        public CIPDevice_E300(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient, byte[] CIPRoute, IOptions<AppConfiguration> options, ILogger logger) :
-            base(deviceAddress, eeipClient, CIPRoute, options, logger)
+        public CIPDevice_E300(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient, byte[] CIPRoute, IOptions<AppConfiguration> options, ILogger logger, IdentityObject identityObject) :
+            base(deviceAddress, eeipClient, CIPRoute, options, logger, identityObject)
         {
             setParameterClassID(0x0F);
             setInstanceAttributes();

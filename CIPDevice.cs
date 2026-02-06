@@ -23,7 +23,8 @@ namespace powerFlexBackup.cipdevice
             Sres.Net.EEIP.EEIPClient eeipClient,
             byte[] CIPRoute,
             IOptions<AppConfiguration> options,
-            ILogger logger)
+            ILogger logger,
+            IdentityObject identityObject)
         {
             this.deviceAddress = deviceAddress;
             this.eeipClient = eeipClient;
@@ -32,9 +33,7 @@ namespace powerFlexBackup.cipdevice
             this.logger = logger;
             this.eeipClient.RegisterSession(deviceAddress);
 
-            this.parentIdentityObject = new IdentityObject();
-            var rawIdentityObject = getRawIdentiyObject();
-            this.parentIdentityObject = parentIdentityObject.getIdentityObjectfromResponse(rawIdentityObject, logger);
+            this.parentIdentityObject = identityObject;
 
             if(config.OutputVerbose){
                 Console.WriteLine("Device Identity Object:");
@@ -307,43 +306,6 @@ namespace powerFlexBackup.cipdevice
                 return "";
             }
         }
-
-        private byte[] getRawIdentiyObject()
-        {
-            try {
-                return GetAttributeAll(0x01, 1);
-            }
-            catch (Sres.Net.EEIP.CIPException ex) when (ex.Message.Contains("Service not supported") && CIPRoute.Length > 0) {
-                // DeviceNet routing doesn't support GetAttributeAll - fall back to individual reads
-                return getIdentityObjectViaIndividualReads();
-            }
-        }
-
-        private byte[] getIdentityObjectViaIndividualReads()
-        {
-            // Identity Object (Class 0x01) attributes
-            var vendorId = GetAttributeSingle(0x01, 1, 1);      // 2 bytes
-            var deviceType = GetAttributeSingle(0x01, 1, 2);    // 2 bytes
-            var productCode = GetAttributeSingle(0x01, 1, 3);   // 2 bytes
-            var revision = GetAttributeSingle(0x01, 1, 4);      // 2 bytes
-            var status = GetAttributeSingle(0x01, 1, 5);        // 2 bytes
-            var serialNumber = GetAttributeSingle(0x01, 1, 6);  // 4 bytes
-            var productName = GetAttributeSingle(0x01, 1, 7);   // SHORT_STRING
-
-            // Assemble same format as GetAttributeAll
-            using (var ms = new System.IO.MemoryStream())
-            {
-                ms.Write(vendorId, 0, vendorId.Length);
-                ms.Write(deviceType, 0, deviceType.Length);
-                ms.Write(productCode, 0, productCode.Length);
-                ms.Write(revision, 0, revision.Length);
-                ms.Write(status, 0, status.Length);
-                ms.Write(serialNumber, 0, serialNumber.Length);
-                ms.Write(productName, 0, productName.Length);
-                return ms.ToArray();
-            }
-        }
-
 
         protected byte[] readDeviceParameterValue(int parameterNumber)
         {

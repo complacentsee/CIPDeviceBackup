@@ -21,7 +21,7 @@ namespace powerFlexBackup.cipdevice
         [JsonIgnore]
         public UInt16 Status;
 
-        public IdentityObject getIdentityObjectfromResponse(byte[] IdentityObjectBytes, ILogger logger)
+        public static IdentityObject getIdentityObjectfromResponse(byte[] IdentityObjectBytes, ILogger logger)
         {
             if(IdentityObjectBytes.Length < 15){
                 logger.LogError("IdentityObjectBytes is too short");

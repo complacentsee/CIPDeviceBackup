@@ -21,8 +21,9 @@ namespace powerFlexBackup.cipdevice
             Sres.Net.EEIP.EEIPClient eeipClient,
             byte[] CIPRoute,
             IOptions<AppConfiguration> options,
-            ILogger logger) :
-            base(deviceAddress, eeipClient, CIPRoute, options, logger)
+            ILogger logger,
+            IdentityObject identityObject) :
+            base(deviceAddress, eeipClient, CIPRoute, options, logger, identityObject)
         {
         }
 
