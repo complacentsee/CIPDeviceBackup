@@ -7,7 +7,7 @@ namespace powerFlexBackup.cipdevice
     /// <summary>
     /// PowerFlex 40 accessed via DeviceNet (22-COMM-D adapter)
     /// </summary>
-    // TODO - confirm all parameter types
+
     // validate product code and type for DeviceNet version
     public class CIPDevice_PowerFlex40_DeviceNet : CIPDevice_PowerFlex40
     {
@@ -23,7 +23,6 @@ namespace powerFlexBackup.cipdevice
         }
 
         // 22-COMM-D (DeviceNet) comm adapter parameters (169-189)
-        // Confirm reported types with actual device
         protected override string commAdapterParameterListJSON => @"[
             { 'number': '169', 'name': 'Mode', 'defaultValue': '0', 'record': 'false', 'type': 'CA==' },
             { 'number': '170', 'name': 'DN Addr Cfg', 'defaultValue': '63', 'record': 'true', 'type': 'CA==' },
