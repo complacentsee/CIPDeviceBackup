@@ -8,10 +8,11 @@ namespace powerFlexBackup.cipdevice
     public abstract class CIPDevice_PowerFlex40 : CIPDevice{
 
         // Scattered read configuration
-        private const int ScatteredReadBatchSize = 60;
+        protected virtual int ScatteredReadBatchSize => 60;
         private const byte ScatteredReadServiceCode = 0x32;
         private const int ScatteredReadClassID = 0x93;
         private const int ScatteredReadInstanceID = 0;
+        protected virtual int ScatteredReadAttributeID => 0;
 
         private readonly int CommAdapterParamStart;
 
@@ -132,8 +133,6 @@ namespace powerFlexBackup.cipdevice
             }
 
             // Process comm adapter parameters individually (scattered read not supported)
-            // TODO: Make configurable for different adapter types (Ethernet, DeviceNet, ControlNet)
-            // we need to understand how to parse the comm adaptor from the route to do this.
             if(commAdapterParams.Count > 0)
             {
                 logger.LogInformation("Reading {0} comm adapter parameters using individual reads",
@@ -156,6 +155,7 @@ namespace powerFlexBackup.cipdevice
                         ScatteredReadServiceCode,
                         ScatteredReadClassID,
                         ScatteredReadInstanceID,
+                        ScatteredReadAttributeID,
                         requestData
                     );
 
@@ -432,8 +432,7 @@ namespace powerFlexBackup.cipdevice
             { 'number': '164', 'name': 'Comm Write Mode', 'defaultValue': '0', 'record': 'true', 'type': 'xw==' },
             { 'number': '165', 'name': 'Anlg Loss Delay', 'defaultValue': '0', 'record': 'true', 'type': 'xw==' },
             { 'number': '166', 'name': 'Analog In Filter', 'defaultValue': '0', 'record': 'true', 'type': 'xw==' },
-            { 'number': '167', 'name': 'PID Invert Error', 'defaultValue': '0', 'record': 'true', 'type': 'xw==' },
-            { 'number': '168', 'name': 'Mode', 'defaultValue': '0', 'record': 'false', 'type': 'xw==' }
+            { 'number': '167', 'name': 'PID Invert Error', 'defaultValue': '0', 'record': 'true', 'type': 'xw==' }
         ]";
 
         // Comm adapter parameters (169+) - must be provided by subclasses

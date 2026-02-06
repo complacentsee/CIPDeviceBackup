@@ -23,6 +23,7 @@ namespace powerFlexBackup.cipdevice
 
         // 22-COMM-E (Ethernet) comm adapter parameters (169-197)
         protected override string commAdapterParameterListJSON => @"[
+            { 'number': '168', 'name': 'Mode', 'defaultValue': '0', 'record': 'false', 'type': 'CA==' },
             { 'number': '169', 'name': 'BOOTP', 'defaultValue': '1', 'record': 'true', 'type': 'xw==' },
             { 'number': '170', 'name': 'IP Addr Cfg 1', 'defaultValue': '0', 'record': 'true', 'type': 'xw==' },
             { 'number': '171', 'name': 'IP Addr Cfg 2', 'defaultValue': '0', 'record': 'true', 'type': 'xw==' },

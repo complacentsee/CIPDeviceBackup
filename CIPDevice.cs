@@ -262,24 +262,37 @@ namespace powerFlexBackup.cipdevice
         /// <param name="instanceID">Target Instance ID</param>
         /// <param name="requestData">Request data bytes</param>
         /// <returns>Response data bytes</returns>
-        protected byte[] SendGenericCIPMessage(byte serviceCode, int classID, int instanceID ,byte[] requestData)
+        protected byte[] SendGenericCIPMessage(byte serviceCode, int classID, int instanceID, byte[] requestData)
+        {
+            return SendGenericCIPMessage(serviceCode, classID, instanceID, 0, requestData);
+        }
+
+        /// <summary>
+        /// Send a generic CIP message - allows full control over service, class, instance, and data
+        /// </summary>
+        /// <param name="serviceCode">CIP Service Code (e.g., 0x0E for Get Attribute Single, 0x32 for Scattered Read)</param>
+        /// <param name="classID">Target Class ID</param>
+        /// <param name="instanceID">Target Instance ID</param>
+        /// <param name="requestData">Request data bytes</param>
+        /// <returns>Response data bytes</returns>
+        protected byte[] SendGenericCIPMessage(byte serviceCode, int classID, int instanceID, int attributeID, byte[] requestData)
         {
             if (CIPRoute.Length > 0) {
                 try {
-                    return eeipClient.GenericCIPMessage(CIPRoute, serviceCode, classID, instanceID, requestData);
+                    return eeipClient.GenericCIPMessage(CIPRoute, serviceCode, classID, instanceID, attributeID, requestData);
                 }
                 catch(Exception e) {
-                    logger.LogError("Failed to send generic CIP message (Service: 0x{0:X2}, Class: 0x{1:X2}, Instance: {2}): {3}",
-                        serviceCode, classID, instanceID, e.Message);
+                    logger.LogError("Failed to send generic CIP message (Service: 0x{0:X2}, Class: 0x{1:X2}, Instance: {2}, Attribute: {3}): {4}.",
+                        serviceCode, classID, instanceID, attributeID, e.Message);
                     throw;
                 }
             } else {
                 try {
-                    return eeipClient.GenericCIPMessage(serviceCode, classID, instanceID, requestData);
+                    return eeipClient.GenericCIPMessage(serviceCode, classID, instanceID, attributeID, requestData);
                 }
                 catch(Exception e) {
-                    logger.LogError("Failed to send generic CIP message (Service: 0x{0:X2}, Class: 0x{1:X2}, Instance: {2}): {3}",
-                        serviceCode, classID, instanceID, e.Message);
+                    logger.LogError("Failed to send generic CIP message (Service: 0x{0:X2}, Class: 0x{1:X2}, Instance: {2}, Attribute: {3}): {4}.",
+                        serviceCode, classID, instanceID, attributeID, e.Message);
                     throw;
                 }
             }
