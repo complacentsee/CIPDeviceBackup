@@ -14,8 +14,7 @@ namespace powerFlexBackup.cipdevice
         private const int ScatteredReadClassID = 0x93;
         private const int ScatteredReadInstanceID = 0;
 
-        // Comm adapter parameters start at 629 - need separate batch
-        private const int CommAdapterParamStart = 629;
+        private readonly int CommAdapterParamStart;
 
         public CIPDevice_PowerFlex70(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient, byte[] CIPRoute, IOptions<AppConfiguration> options, ILogger logger, IdentityObject identityObject) :
             base(deviceAddress, eeipClient, CIPRoute, options, logger, identityObject)
@@ -26,6 +25,7 @@ namespace powerFlexBackup.cipdevice
             // Combine drive parameters with comm adapter parameters
             var allParams = JsonConvert.DeserializeObject<List<DeviceParameter>>(driveParameterListJSON)!;
             var commParams = JsonConvert.DeserializeObject<List<DeviceParameter>>(commAdapterParameterListJSON)!;
+            CommAdapterParamStart = commParams.Min(p => p.number);
             allParams.AddRange(commParams);
             setDeviceParameterList(allParams);
         }
