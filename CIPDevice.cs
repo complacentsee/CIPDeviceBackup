@@ -23,7 +23,8 @@ namespace powerFlexBackup.cipdevice
             Sres.Net.EEIP.EEIPClient eeipClient,
             byte[] CIPRoute,
             IOptions<AppConfiguration> options,
-            ILogger logger)
+            ILogger logger,
+            IdentityObject identityObject)
         {
             this.deviceAddress = deviceAddress;
             this.eeipClient = eeipClient;
@@ -32,9 +33,7 @@ namespace powerFlexBackup.cipdevice
             this.logger = logger;
             this.eeipClient.RegisterSession(deviceAddress);
 
-            this.parentIdentityObject = new IdentityObject();
-            var rawIdentityObject = getRawIdentiyObject();
-            this.parentIdentityObject = parentIdentityObject.getIdentityObjectfromResponse(rawIdentityObject, logger);
+            this.parentIdentityObject = identityObject;
 
             if(config.OutputVerbose){
                 Console.WriteLine("Device Identity Object:");
@@ -263,24 +262,37 @@ namespace powerFlexBackup.cipdevice
         /// <param name="instanceID">Target Instance ID</param>
         /// <param name="requestData">Request data bytes</param>
         /// <returns>Response data bytes</returns>
-        protected byte[] SendGenericCIPMessage(byte serviceCode, int classID, int instanceID ,byte[] requestData)
+        protected byte[] SendGenericCIPMessage(byte serviceCode, int classID, int instanceID, byte[] requestData)
+        {
+            return SendGenericCIPMessage(serviceCode, classID, instanceID, 0, requestData);
+        }
+
+        /// <summary>
+        /// Send a generic CIP message - allows full control over service, class, instance, and data
+        /// </summary>
+        /// <param name="serviceCode">CIP Service Code (e.g., 0x0E for Get Attribute Single, 0x32 for Scattered Read)</param>
+        /// <param name="classID">Target Class ID</param>
+        /// <param name="instanceID">Target Instance ID</param>
+        /// <param name="requestData">Request data bytes</param>
+        /// <returns>Response data bytes</returns>
+        protected byte[] SendGenericCIPMessage(byte serviceCode, int classID, int instanceID, int attributeID, byte[] requestData)
         {
             if (CIPRoute.Length > 0) {
                 try {
-                    return eeipClient.GenericCIPMessage(CIPRoute, serviceCode, classID, instanceID, requestData);
+                    return eeipClient.GenericCIPMessage(CIPRoute, serviceCode, classID, instanceID, attributeID, requestData);
                 }
                 catch(Exception e) {
-                    logger.LogError("Failed to send generic CIP message (Service: 0x{0:X2}, Class: 0x{1:X2}, Instance: {2}): {3}",
-                        serviceCode, classID, instanceID, e.Message);
+                    logger.LogError("Failed to send generic CIP message (Service: 0x{0:X2}, Class: 0x{1:X2}, Instance: {2}, Attribute: {3}): {4}.",
+                        serviceCode, classID, instanceID, attributeID, e.Message);
                     throw;
                 }
             } else {
                 try {
-                    return eeipClient.GenericCIPMessage(serviceCode, classID, instanceID, requestData);
+                    return eeipClient.GenericCIPMessage(serviceCode, classID, instanceID, attributeID, requestData);
                 }
                 catch(Exception e) {
-                    logger.LogError("Failed to send generic CIP message (Service: 0x{0:X2}, Class: 0x{1:X2}, Instance: {2}): {3}",
-                        serviceCode, classID, instanceID, e.Message);
+                    logger.LogError("Failed to send generic CIP message (Service: 0x{0:X2}, Class: 0x{1:X2}, Instance: {2}, Attribute: {3}): {4}.",
+                        serviceCode, classID, instanceID, attributeID, e.Message);
                     throw;
                 }
             }
@@ -307,12 +319,6 @@ namespace powerFlexBackup.cipdevice
                 return "";
             }
         }
-
-        private byte[] getRawIdentiyObject()
-        {
-            return GetAttributeAll(0x01, 1);
-        }
-
 
         protected byte[] readDeviceParameterValue(int parameterNumber)
         {
@@ -380,6 +386,30 @@ namespace powerFlexBackup.cipdevice
                 
                 case 0xD3:
                     return CIPDeviceHelper.convertBytestoQWORD(parameterValueBytes);
+
+                // Non-standard type codes (used by 20-COMM-D DeviceNet adapter)
+                // Determined empirically from parameter value byte sizes
+                case 0x01:  // WORD - 16-bit bitmask (DeviceNet equivalent of 0xD2)
+                    return CIPDeviceHelper.convertBytestoWORD(parameterValueBytes);
+
+                case 0x02:  // UINT - 16-bit unsigned (DeviceNet equivalent of 0xC7)
+                    return CIPDeviceHelper.convertBytestoUINT16LittleEndian(parameterValueBytes);
+
+                case 0x03:  // INT - 16-bit signed (DeviceNet equivalent of 0xC3)
+                    return CIPDeviceHelper.convertBytesToINT16LittleEndian(parameterValueBytes);
+
+                case 0x06:  // DINT - 32-bit signed (DeviceNet equivalent of 0xC4)
+                    return CIPDeviceHelper.convertBytestoINT32LittleEndian(parameterValueBytes);
+
+                case 0x08:  // USINT - 8-bit unsigned (DeviceNet equivalent of 0xC6)
+                case 0x18:  // BYTE - 8-bit bitmask (DeviceNet equivalent of 0xD1)
+                    return CIPDeviceHelper.convertBytestoUSINT8(parameterValueBytes);
+
+                case 0x09:  // UDINT - 32-bit unsigned (DeviceNet equivalent of 0xC8)
+                    return CIPDeviceHelper.convertBytestoUINT32LittleEndian(parameterValueBytes);
+
+                case 0x19:  // DWORD - 32-bit bitmask (DeviceNet equivalent of 0xD3)
+                    return CIPDeviceHelper.convertBytestoDWORD(parameterValueBytes);
 
                 default:
                     return "Unknown Parameter Type";    

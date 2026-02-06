@@ -64,13 +64,14 @@ namespace powerFlexBackup
                 }
                 this.eeipClient.UnRegisterSession();
 
-                var deviceType = getIdentiyObjectDeviceTypefromRaw(rawIdentityObject);
-                var productCode = getIdentiyObjectProductCodefromRaw(rawIdentityObject);
+                var identityObject = IdentityObject.getIdentityObjectfromResponse(rawIdentityObject, logger);
+                var deviceType = (int)identityObject.DeviceType;
+                var productCode = (int)identityObject.ProductCode;
 
                 Console.WriteLine("deviceType {0}, productCode {1}", deviceType, productCode);
                 var DeviceClass = getDeviceTypeClass(deviceType, productCode);
 
-                return (CIPDevice)Activator.CreateInstance(DeviceClass!, new object[] {hostAddress, eeipClient, route, Options.Create(config), logger})!;
+                return (CIPDevice)Activator.CreateInstance(DeviceClass!, new object[] {hostAddress, eeipClient, route, Options.Create(config), logger, identityObject})!;
             }
             catch(Exception e){
                 logger.LogError("Unable to create device object: {0}", e.Message);
@@ -85,19 +86,38 @@ namespace powerFlexBackup
 
         private static byte[] getRawIdentiyObjectfromSession(Sres.Net.EEIP.EEIPClient eeipClient, byte[] route)
         {
-            return eeipClient.GetAttributeAll(route, 0x01, 1);
+            try {
+                return eeipClient.GetAttributeAll(route, 0x01, 1);
+            }
+            catch (Sres.Net.EEIP.CIPException ex) when (ex.Message.Contains("Service not supported")) {
+                // DeviceNet routing doesn't support GetAttributeAll - fall back to individual reads
+                return getIdentityObjectViaIndividualReads(eeipClient, route);
+            }
         }
 
-        private static int getIdentiyObjectDeviceTypefromRaw(byte[] rawIdentityObject)
+        private static byte[] getIdentityObjectViaIndividualReads(Sres.Net.EEIP.EEIPClient eeipClient, byte[] route)
         {
-            return Convert.ToUInt16(rawIdentityObject[2]
-                                        | rawIdentityObject[3] << 8);
-        }
+            // Identity Object (Class 0x01) attributes
+            var vendorId = eeipClient.GetAttributeSingle(route, 0x01, 1, 1);      // 2 bytes
+            var deviceType = eeipClient.GetAttributeSingle(route, 0x01, 1, 2);    // 2 bytes
+            var productCode = eeipClient.GetAttributeSingle(route, 0x01, 1, 3);   // 2 bytes
+            var revision = eeipClient.GetAttributeSingle(route, 0x01, 1, 4);      // 2 bytes
+            var status = eeipClient.GetAttributeSingle(route, 0x01, 1, 5);        // 2 bytes
+            var serialNumber = eeipClient.GetAttributeSingle(route, 0x01, 1, 6);  // 4 bytes
+            var productName = eeipClient.GetAttributeSingle(route, 0x01, 1, 7);   // SHORT_STRING
 
-        private static int getIdentiyObjectProductCodefromRaw(byte[] rawIdentityObject)
-        {
-            return Convert.ToUInt16(rawIdentityObject[4]
-                                        | rawIdentityObject[5] << 8);
+            // Assemble same format as GetAttributeAll
+            using (var ms = new System.IO.MemoryStream())
+            {
+                ms.Write(vendorId, 0, vendorId.Length);
+                ms.Write(deviceType, 0, deviceType.Length);
+                ms.Write(productCode, 0, productCode.Length);
+                ms.Write(revision, 0, revision.Length);
+                ms.Write(status, 0, status.Length);
+                ms.Write(serialNumber, 0, serialNumber.Length);
+                ms.Write(productName, 0, productName.Length);
+                return ms.ToArray();
+            }
         }
 
         private static bool IsIPv4(string address)
@@ -162,17 +182,21 @@ namespace powerFlexBackup
 
             private Type getDeviceTypeClass(int deviceType, int productCode)
             {
+                Type? wildcardMatch = null;
+
                 foreach (var type in _deviceTypes.Value){
                     System.Attribute[] attrs = System.Attribute.GetCustomAttributes(type);
                     foreach (System.Attribute attr in attrs)
                         if (attr is SupportedDevice)
                         {
                             SupportedDevice a = (SupportedDevice)attr;
-                            if(a.map.Any(x => x.deviceType == deviceType && x.productCode == productCode))
+                            if(a.map.Any(x => x.deviceType == deviceType && x.productCode.HasValue && x.productCode.Value == productCode))
                                 return type;
+                            if(wildcardMatch == null && a.map.Any(x => x.deviceType == deviceType && !x.productCode.HasValue))
+                                wildcardMatch = type;
                         }
                 }
-                return typeof(CIPDevice_Generic);
+                return wildcardMatch ?? typeof(CIPDevice_Generic);
             }
 
             public static string GetSupportedDevicesDisplay()

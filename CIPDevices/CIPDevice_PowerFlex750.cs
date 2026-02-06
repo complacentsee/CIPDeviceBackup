@@ -11,8 +11,8 @@ namespace powerFlexBackup.cipdevice
     [SupportedDevice("PowerFlex 750 Series", 143, 2192)]
     public class CIPDevice_PowerFlex750 : CIPDevice_PowerFlex750Base
     {
-        public CIPDevice_PowerFlex750(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient, byte[] CIPRoute, IOptions<AppConfiguration> options, ILogger logger) :
-            base(deviceAddress, eeipClient, CIPRoute, options, logger)
+        public CIPDevice_PowerFlex750(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient, byte[] CIPRoute, IOptions<AppConfiguration> options, ILogger logger, IdentityObject identityObject) :
+            base(deviceAddress, eeipClient, CIPRoute, options, logger, identityObject)
         {
         }
 

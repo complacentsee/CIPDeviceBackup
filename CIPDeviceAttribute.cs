@@ -8,18 +8,28 @@ namespace powerFlexBackup.cipdevice.deviceParameterObjects{
     {  
         private string supprtedDeviceType;
         public int deviceType;
-        public int productCode;
+        public int? productCode;
         private bool optmizedPolling;
         public List<CIPDeviceMap> map = new List<CIPDeviceMap>();
     
-        public SupportedDevice(string supprtedDeviceType, int deviceType, int productCode, bool optmizedPolling = false)  
-        {  
+        public SupportedDevice(string supprtedDeviceType, int deviceType, int productCode, bool optmizedPolling = false)
+        {
             this.supprtedDeviceType = supprtedDeviceType;
             this.deviceType = deviceType;
             this.productCode = productCode;
             this.optmizedPolling = optmizedPolling;
             this.map = new List<CIPDeviceMap>();
             this.map.Add(new CIPDeviceMap(deviceType, productCode));
+        }
+
+        public SupportedDevice(string supprtedDeviceType, int deviceType, bool optmizedPolling = false)
+        {
+            this.supprtedDeviceType = supprtedDeviceType;
+            this.deviceType = deviceType;
+            this.productCode = null;
+            this.optmizedPolling = optmizedPolling;
+            this.map = new List<CIPDeviceMap>();
+            this.map.Add(new CIPDeviceMap(deviceType, null));
         }  
         public string GetSupprtedDeviceType()  
         {  
@@ -29,7 +39,7 @@ namespace powerFlexBackup.cipdevice.deviceParameterObjects{
         public string? GetSupprtedDeviceDetails()  
         {  
             if( this.deviceType != new int())
-                return "DeviceType: " + deviceType + " ProductCode: " + productCode;
+                return "DeviceType: " + deviceType + " ProductCode: " + (productCode.HasValue ? productCode.Value.ToString() : "Any");
             return null;
         }  
     } 
@@ -37,8 +47,8 @@ namespace powerFlexBackup.cipdevice.deviceParameterObjects{
         public class CIPDeviceMap
         {
             public int deviceType { get;}
-            public int productCode { get;}
-            public CIPDeviceMap(int deviceType, int productCode)
+            public int? productCode { get;}
+            public CIPDeviceMap(int deviceType, int? productCode)
             {
                 this.deviceType = deviceType;
                 this.productCode = productCode;

@@ -10,8 +10,8 @@ namespace powerFlexBackup.cipdevice
         protected List<DeviceParameter_PowerFlex750> parameterObjectList;
         protected List<PortParameterMap> portMap;
 
-        public CIPDevice_PowerFlex750Base(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient, byte[] CIPRoute, IOptions<AppConfiguration> options, ILogger logger) :
-            base(deviceAddress, eeipClient, CIPRoute, options, logger)
+        public CIPDevice_PowerFlex750Base(String deviceAddress, Sres.Net.EEIP.EEIPClient eeipClient, byte[] CIPRoute, IOptions<AppConfiguration> options, ILogger logger, IdentityObject identityObject) :
+            base(deviceAddress, eeipClient, CIPRoute, options, logger, identityObject)
         {
             setInstanceAttributes();
             parameterObjectList = new List<DeviceParameter_PowerFlex750>();
@@ -51,22 +51,23 @@ namespace powerFlexBackup.cipdevice
             for (int i = 2; i < 16; i++)
             {
                 try {
-                    var IdentityObject = new IdentityObject();
                     var temp = getRawIdentiyObjectfromInstance(i);
+                    IdentityObject portIdentity;
                     try {
-                        IdentityObject = IdentityObject.getIdentityObjectfromResponse(temp, logger);
+                        portIdentity = IdentityObject.getIdentityObjectfromResponse(temp, logger);
                     } catch (Exception e) {
                         Console.WriteLine("Error getting Identity Object from instance {0}: {1}", i, e.Message);
+                        continue;
                     }
 
                     // SKIP empty port data collection and HIM modules. Maybe HIM modules should be collected?
-                    bool deviceIsHIM = IdentityObject.ProductName.Contains("HIM") || IdentityObject.ProductCode == 767;
-                    bool portIsEmpty = IdentityObject.ProductName.Contains("Not") || IdentityObject.ProductCode == 65280;
+                    bool deviceIsHIM = portIdentity.ProductName.Contains("HIM") || portIdentity.ProductCode == 767;
+                    bool portIsEmpty = portIdentity.ProductName.Contains("Not") || portIdentity.ProductCode == 65280;
 
                     if (deviceIsHIM || portIsEmpty){
                         continue;
                     }
-                        parameterObject.Add(new DeviceParameterObject(ClassID, IdentityObject, new List<DeviceParameter>(), i-1));
+                        parameterObject.Add(new DeviceParameterObject(ClassID, portIdentity, new List<DeviceParameter>(), i-1));
                 } catch (Exception e) {
                     Console.WriteLine("Error getting Identity Object from instance {0}: {1}", i, e.Message);
                 }
