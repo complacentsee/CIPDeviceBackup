@@ -19,7 +19,11 @@ namespace powerFlexBackup.cipdevice
         {
             setParameterClassID(0x0F);
             setInstanceAttributes();
-            setDeviceParameterList(JsonConvert.DeserializeObject<List<DeviceParameter>>(parameterListJSON)!);
+            // Combine drive parameters with comm adapter parameters
+            var allParams = JsonConvert.DeserializeObject<List<DeviceParameter>>(driveParameterListJSON)!;
+            var commParams = JsonConvert.DeserializeObject<List<DeviceParameter>>(commAdapterParameterListJSON)!;
+            allParams.AddRange(commParams);
+            setDeviceParameterList(allParams);
         }
 
         /// <summary>
@@ -262,7 +266,7 @@ namespace powerFlexBackup.cipdevice
             return readDeviceParameterMaxNumberCIPStandardCompliant();
         }
 
-        public string parameterListJSON = @"[{
+        public string driveParameterListJSON = @"[{
         'number': '1',
         'name': 'Output Freq',
         'defaultValue': '0',
@@ -1437,7 +1441,11 @@ namespace powerFlexBackup.cipdevice
         'defaultValue': '0',
         'record': 'false',
         'type': 'xw=='
-    },
+    }]";
+
+        // Comm adapter parameters (169+)
+        // Override this in subclasses for different comm adapters (e.g., DeviceNet)
+        protected virtual string commAdapterParameterListJSON => @"[
     {
         'number': '169',
         'name': 'BOOTP',
