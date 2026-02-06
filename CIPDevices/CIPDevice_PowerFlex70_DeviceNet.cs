@@ -6,17 +6,15 @@ namespace powerFlexBackup.cipdevice
 {
     /// <summary>
     /// PowerFlex 70 accessed via DeviceNet (20-COMM-D adapter)
-    /// DeviceNet scattered read requires an extra 0x00 byte at end of request
     /// per 20-COMM-D documentation: "Source Length = (param_count * 6) + 1"
-    /// Note: Routing through Ethernet/IP -> DNB -> DeviceNet has lower message size limits
     /// </summary>
     /// TODO: Determine if we can really use the 121 for all devicenet nodes
-  //  [SupportedDevice("PowerFlex 70 DeviceNet", 121, 5938, true)]
-  //  [SupportedDevice("PowerFlex 70 DeviceNet", 121, 7474, true)]
+    //  [SupportedDevice("PowerFlex 70 DeviceNet", 121, 5938, true)]
+    //  [SupportedDevice("PowerFlex 70 DeviceNet", 121, 7474, true)]
     [SupportedDevice("PowerFlex 70 DeviceNet", 121, true)]
     public class CIPDevice_PowerFlex70_DeviceNet : CIPDevice_PowerFlex70
     {
-        protected override int ScatteredReadBatchSize => 22;
+        protected override int ScatteredReadBatchSize => 20;
 
         public CIPDevice_PowerFlex70_DeviceNet(
             String deviceAddress,
@@ -32,13 +30,16 @@ namespace powerFlexBackup.cipdevice
         /// <summary>
         /// DeviceNet scattered read request format:
         /// For each parameter: UINT16 param_number + UINT16 pad + UINT16 pad (6 bytes per param)
-        /// Plus one extra required 0x00 byte at the end
+        /// Plus one extra UINT16 0x0000 at the end
         /// </summary>
         protected override byte[] BuildScatteredReadRequest(List<int> parameterNumbers)
         {
             // DeviceNet requires extra byte: (param_count * 6) + 1
             byte[] requestData = new byte[(parameterNumbers.Count * 6) + 2];
             int offset = 0;
+
+            // Extra required byte (always zero) for DeviceNet
+            requestData[offset++] = 0;
             foreach (int paramNum in parameterNumbers)
             {
                 requestData[offset++] = (byte)(paramNum & 0xFF);
@@ -48,10 +49,6 @@ namespace powerFlexBackup.cipdevice
                 requestData[offset++] = 0;
                 requestData[offset++] = 0;
             }
-
-            // Extra required word (always zero) for DeviceNet
-            requestData[offset++] = 0;
-            requestData[offset++]   = 0;
 
             return requestData;
         }
