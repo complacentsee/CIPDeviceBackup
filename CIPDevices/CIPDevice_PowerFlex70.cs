@@ -427,28 +427,28 @@ namespace powerFlexBackup.cipdevice
                         {
                         'number': '26',
                         'name': 'Rated kW',
-                        'defaultValue': '400',
+                        'defaultValue': null,
                         'record': 'false',
                         'type': 'xw=='
                         },
                         {
                         'number': '27',
                         'name': 'Rated Volts',
-                        'defaultValue': '4800',
+                        'defaultValue': null,
                         'record': 'false',
                         'type': 'xw=='
                         },
                         {
                         'number': '28',
                         'name': 'Rated Amps',
-                        'defaultValue': '80',
+                        'defaultValue': null,
                         'record': 'false',
                         'type': 'xw=='
                         },
                         {
                         'number': '29',
                         'name': 'Control SW Ver',
-                        'defaultValue': '5001',
+                        'defaultValue': null,
                         'record': 'false',
                         'type': 'xw=='
                         },
@@ -539,7 +539,7 @@ namespace powerFlexBackup.cipdevice
                         {
                         'number': '42',
                         'name': 'Motor NP FLA',
-                        'defaultValue': '64',
+                        'defaultValue': null,
                         'record': 'true',
                         'type': 'xw=='
                         },
@@ -553,14 +553,14 @@ namespace powerFlexBackup.cipdevice
                         {
                         'number': '44',
                         'name': 'Motor NP RPM',
-                        'defaultValue': '1750',
+                        'defaultValue': null,
                         'record': 'true',
                         'type': 'xw=='
                         },
                         {
                         'number': '45',
                         'name': 'Motor NP Power',
-                        'defaultValue': '500',
+                        'defaultValue': null,
                         'record': 'true',
                         'type': 'xw=='
                         },
@@ -679,14 +679,14 @@ namespace powerFlexBackup.cipdevice
                         {
                         'number': '62',
                         'name': 'IR Voltage Drop',
-                        'defaultValue': '128',
+                        'defaultValue': null,
                         'record': 'true',
                         'type': 'xw=='
                         },
                         {
                         'number': '63',
                         'name': 'Flux Current Ref',
-                        'defaultValue': '256',
+                        'defaultValue': null,
                         'record': 'true',
                         'type': 'xw=='
                         },
@@ -728,14 +728,14 @@ namespace powerFlexBackup.cipdevice
                         {
                         'number': '69',
                         'name': 'Start\/Acc Boost',
-                        'defaultValue': '51',
+                        'defaultValue': null,
                         'record': 'true',
                         'type': 'xw=='
                         },
                         {
                         'number': '70',
                         'name': 'Run Boost',
-                        'defaultValue': '51',
+                        'defaultValue': null,
                         'record': 'true',
                         'type': 'xw=='
                         },
@@ -1092,7 +1092,7 @@ namespace powerFlexBackup.cipdevice
                         {
                         'number': '121',
                         'name': 'Slip RPM @ FLA',
-                        'defaultValue': '500',
+                        'defaultValue': null,
                         'record': 'true',
                         'type': 'xw=='
                         },
@@ -1281,7 +1281,7 @@ namespace powerFlexBackup.cipdevice
                         {
                         'number': '148',
                         'name': 'Current Lmt Val',
-                        'defaultValue': '120',
+                        'defaultValue': null,
                         'record': 'true',
                         'type': 'xw=='
                         },
@@ -1351,7 +1351,7 @@ namespace powerFlexBackup.cipdevice
                         {
                         'number': '158',
                         'name': 'DC Brake Level',
-                        'defaultValue': '80',
+                        'defaultValue': null,
                         'record': 'true',
                         'type': 'xw=='
                         },

@@ -10,8 +10,10 @@ namespace powerFlexBackup.cipdevice
     /// per 20-COMM-D documentation: "Source Length = (param_count * 6) + 1"
     /// Note: Routing through Ethernet/IP -> DNB -> DeviceNet has lower message size limits
     /// </summary>
-    [SupportedDevice("PowerFlex 70 DeviceNet", 121, 5938, true)]
-    [SupportedDevice("PowerFlex 70 DeviceNet", 121, 7474, true)]
+    /// TODO: Determine if we can really use the 121 for all devicenet nodes
+  //  [SupportedDevice("PowerFlex 70 DeviceNet", 121, 5938, true)]
+  //  [SupportedDevice("PowerFlex 70 DeviceNet", 121, 7474, true)]
+    [SupportedDevice("PowerFlex 70 DeviceNet", 121, true)]
     public class CIPDevice_PowerFlex70_DeviceNet : CIPDevice_PowerFlex70
     {
         protected override int ScatteredReadBatchSize => 22;

@@ -376,18 +376,27 @@ namespace powerFlexBackup.cipdevice
 
                 // Non-standard type codes (used by 20-COMM-D DeviceNet adapter)
                 // Determined empirically from parameter value byte sizes
-                case 0x01:  // 2-byte value - treating as UINT16
+                case 0x01:  // WORD - 16-bit bitmask (DeviceNet equivalent of 0xD2)
+                    return CIPDeviceHelper.convertBytestoWORD(parameterValueBytes);
+
+                case 0x02:  // UINT - 16-bit unsigned (DeviceNet equivalent of 0xC7)
                     return CIPDeviceHelper.convertBytestoUINT16LittleEndian(parameterValueBytes);
 
-                case 0x02:  // 2-byte value - treating as INT16
+                case 0x03:  // INT - 16-bit signed (DeviceNet equivalent of 0xC3)
                     return CIPDeviceHelper.convertBytesToINT16LittleEndian(parameterValueBytes);
 
-                case 0x08:  // 1-byte value - treating as USINT
-                case 0x18:  // 1-byte value - treating as USINT
+                case 0x06:  // DINT - 32-bit signed (DeviceNet equivalent of 0xC4)
+                    return CIPDeviceHelper.convertBytestoINT32LittleEndian(parameterValueBytes);
+
+                case 0x08:  // USINT - 8-bit unsigned (DeviceNet equivalent of 0xC6)
+                case 0x18:  // BYTE - 8-bit bitmask (DeviceNet equivalent of 0xD1)
                     return CIPDeviceHelper.convertBytestoUSINT8(parameterValueBytes);
 
-                case 0x09:  // 4-byte value - treating as UDINT
+                case 0x09:  // UDINT - 32-bit unsigned (DeviceNet equivalent of 0xC8)
                     return CIPDeviceHelper.convertBytestoUINT32LittleEndian(parameterValueBytes);
+
+                case 0x19:  // DWORD - 32-bit bitmask (DeviceNet equivalent of 0xD3)
+                    return CIPDeviceHelper.convertBytestoDWORD(parameterValueBytes);
 
                 default:
                     return "Unknown Parameter Type";    
