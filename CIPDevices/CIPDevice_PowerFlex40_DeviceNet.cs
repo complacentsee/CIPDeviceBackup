@@ -7,6 +7,8 @@ namespace powerFlexBackup.cipdevice
     /// <summary>
     /// PowerFlex 40 accessed via DeviceNet (22-COMM-D adapter)
     /// </summary>
+    // TODO - confirm all parameter types
+    // validate product code and type for DeviceNet version
     public class CIPDevice_PowerFlex40_DeviceNet : CIPDevice_PowerFlex40
     {
         public CIPDevice_PowerFlex40_DeviceNet(
