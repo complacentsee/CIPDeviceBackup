@@ -193,17 +193,21 @@ namespace powerFlexBackup
 
             private Type getDeviceTypeClass(int deviceType, int productCode)
             {
+                Type? wildcardMatch = null;
+
                 foreach (var type in _deviceTypes.Value){
                     System.Attribute[] attrs = System.Attribute.GetCustomAttributes(type);
                     foreach (System.Attribute attr in attrs)
                         if (attr is SupportedDevice)
                         {
                             SupportedDevice a = (SupportedDevice)attr;
-                            if(a.map.Any(x => x.deviceType == deviceType && x.productCode == productCode))
+                            if(a.map.Any(x => x.deviceType == deviceType && x.productCode.HasValue && x.productCode.Value == productCode))
                                 return type;
+                            if(wildcardMatch == null && a.map.Any(x => x.deviceType == deviceType && !x.productCode.HasValue))
+                                wildcardMatch = type;
                         }
                 }
-                return typeof(CIPDevice_Generic);
+                return wildcardMatch ?? typeof(CIPDevice_Generic);
             }
 
             public static string GetSupportedDevicesDisplay()
