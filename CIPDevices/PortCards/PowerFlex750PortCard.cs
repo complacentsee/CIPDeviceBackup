@@ -17,10 +17,10 @@ namespace powerFlexBackup.cipdevice.PortCards
     public abstract class PowerFlex750PortCard
     {
         /// <summary>
-        /// Product Code from device Identity Object (primary matching key).
-        /// Use 0 if ProductCode matching should be skipped (ProductName-only matching).
+        /// Known Product Codes from device Identity Object (primary matching key).
+        /// Empty array if ProductCode matching should be skipped (ProductName-only matching).
         /// </summary>
-        public abstract ushort ProductCode { get; }
+        public abstract ushort[] ProductCodes { get; }
 
         /// <summary>
         /// Product Name from device Identity Object (fallback matching key).
@@ -34,6 +34,13 @@ namespace powerFlexBackup.cipdevice.PortCards
         /// - 0x93 = DPI class (comm adapters like 20-COMM-E)
         /// </summary>
         public abstract int ClassID { get; }
+
+        /// <summary>
+        /// Whether this card supports scattered read (service 0x4D, class 0x93).
+        /// Most cards do, but comm adapters like EtherNet/IP return wrong data
+        /// from scattered read and must use individual DPI Online Read Full instead.
+        /// </summary>
+        public virtual bool UseScatteredRead => true;
 
         /// <summary>
         /// JSON string containing parameter list definition.
@@ -70,13 +77,12 @@ namespace powerFlexBackup.cipdevice.PortCards
                 .Where(t => t.IsSubclassOf(typeof(PowerFlex750PortCard)) && !t.IsAbstract);
 
             // Phase 1: Try ProductCode match (exact, most reliable)
-            // Skip if ProductCode is 0 (indicates ProductName-only matching for that card type)
             if (productCode != 0)
             {
                 foreach (var type in cardTypes)
                 {
                     var instance = (PowerFlex750PortCard)Activator.CreateInstance(type)!;
-                    if (instance.ProductCode != 0 && instance.ProductCode == productCode)
+                    if (instance.ProductCodes.Length > 0 && instance.ProductCodes.Contains(productCode))
                     {
                         return instance;
                     }

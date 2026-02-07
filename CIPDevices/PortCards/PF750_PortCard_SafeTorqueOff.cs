@@ -13,7 +13,7 @@ namespace powerFlexBackup.cipdevice.PortCards
     /// </summary>
     public class PF750_PortCard_SafeTorqueOff : PowerFlex750PortCard
     {
-        public override ushort ProductCode => 0;  // TODO: Determine actual ProductCode from live device
+        public override ushort[] ProductCodes => [];  // TODO: Determine actual ProductCode from live device
         public override string ProductName => "Safe Torque Off";
         public override int ClassID => 0x9F;  // Standard HOST memory class (though not used)
 

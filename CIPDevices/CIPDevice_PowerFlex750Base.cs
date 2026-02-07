@@ -84,7 +84,8 @@ namespace powerFlexBackup.cipdevice
                 // Try to get predefined parameter list
                 var predefinedParams = tryGetPredefinedParameterList(
                     PortGroup.identityObject,
-                    out int classID);
+                    out int classID,
+                    out bool useScatteredRead);
 
                 if (predefinedParams != null)
                 {
@@ -96,7 +97,7 @@ namespace powerFlexBackup.cipdevice
                     PortGroup.ParameterList.AddRange(predefinedParams);
 
                     // Read actual values for recordable params
-                    readParameterValues(predefinedParams, portMap[PortGroup.Port].Offset, classID);
+                    readParameterValues(predefinedParams, portMap[PortGroup.Port].Offset, classID, useScatteredRead);
                 }
                 else
                 {
@@ -184,9 +185,11 @@ namespace powerFlexBackup.cipdevice
         /// <returns>List of DeviceParameter definitions if card is known, null if unknown</returns>
         protected virtual List<DeviceParameter>? tryGetPredefinedParameterList(
             IdentityObject identity,
-            out int classID)
+            out int classID,
+            out bool useScatteredRead)
         {
             classID = 0x9F;  // Default to HOST memory class
+            useScatteredRead = true;
 
             var cardDef = PortCards.PowerFlex750PortCard.getCardDefinitionForPort(
                 identity.ProductCode,
@@ -195,6 +198,7 @@ namespace powerFlexBackup.cipdevice
             if (cardDef != null)
             {
                 classID = cardDef.ClassID;
+                useScatteredRead = cardDef.UseScatteredRead;
                 logger.LogInformation("Using predefined parameter list for {0} (ProductCode {1})",
                     identity.ProductName, identity.ProductCode);
                 return cardDef.getParameterList();
@@ -205,14 +209,19 @@ namespace powerFlexBackup.cipdevice
             return null;
         }
 
+        // Scattered read configuration for PowerFlex 750 port cards (per 750-PM001)
+        // Service 0x4D, Class 0x93, Instance 0, Attribute 0
+        // Request:  DINT param_number + DINT pad   (8 bytes per param)
+        // Response: DINT param_number + DINT value  (8 bytes per param)
+        private const byte PF750ScatteredReadServiceCode = 0x4D;
+        private const int PF750ScatteredReadClassID = 0x93;
+        private const int PF750ScatteredReadInstanceID = 0;
+        private const int PF750ScatteredReadAttributeID = 0;
+        private const int PF750ScatteredReadBatchSize = 32;
+
         /// <summary>
-        /// Read actual parameter values for a predefined port card parameter list.
-        /// Only reads recordable parameters (or all if OutputAllRecords is set).
-        ///
-        /// This is faster than dynamic reading because:
-        /// - We know exactly which parameters exist
-        /// - We skip non-recordable parameters
-        /// - We don't need to follow the NextParameter chain
+        /// Read actual parameter values for a predefined port card parameter list using scattered read.
+        /// Falls back to individual DPI Online Read Full if scattered read fails.
         /// </summary>
         /// <param name="parameters">Predefined parameter list from port card definition</param>
         /// <param name="offset">Port offset from portMap (e.g., 0x4400 for port 1)</param>
@@ -220,16 +229,170 @@ namespace powerFlexBackup.cipdevice
         protected virtual void readParameterValues(
             List<DeviceParameter> parameters,
             int offset,
-            int classID)
+            int classID,
+            bool useScatteredRead = true)
         {
-            foreach (var param in parameters.Where(p => p.record || config.OutputAllRecords))
+            var paramsToRead = parameters
+                .Where(p => p.record || config.OutputAllRecords)
+                .ToList();
+
+            if (paramsToRead.Count == 0)
+                return;
+
+            // Build lookup by offset-adjusted parameter number -> DeviceParameter
+            var paramsByOffsetNumber = new Dictionary<int, DeviceParameter>();
+            foreach (var p in paramsToRead)
+                paramsByOffsetNumber[p.number + offset] = p;
+
+            var offsetParamNumbers = paramsToRead.Select(p => p.number + offset).ToList();
+
+            if (!useScatteredRead)
             {
+                logger.LogInformation("Reading {0} parameters from port offset 0x{1:X4} using individual DPI reads",
+                    paramsToRead.Count, offset);
+                ReadParameterValuesIndividual(offsetParamNumbers, paramsByOffsetNumber, classID);
+                return;
+            }
+
+            logger.LogInformation("Reading {0} parameters from port offset 0x{1:X4} using scattered read (batches of {2})",
+                paramsToRead.Count, offset, PF750ScatteredReadBatchSize);
+
+            for (int i = 0; i < offsetParamNumbers.Count; i += PF750ScatteredReadBatchSize)
+            {
+                int count = Math.Min(PF750ScatteredReadBatchSize, offsetParamNumbers.Count - i);
+                var batch = offsetParamNumbers.GetRange(i, count);
+
                 try
                 {
-                    // Adjust parameter number by port offset
-                    // Example: param.number=1 + offset=0x4400 = read parameter 0x4401 from device
+                    byte[] requestData = BuildPF750ScatteredReadRequest(batch);
+                    byte[] response = SendGenericCIPMessage(
+                        PF750ScatteredReadServiceCode,
+                        PF750ScatteredReadClassID,
+                        PF750ScatteredReadInstanceID,
+                        PF750ScatteredReadAttributeID,
+                        requestData);
+
+                    var batchResults = ParsePF750ScatteredReadResponse(response, batch, paramsByOffsetNumber);
+                    ApplyPF750ScatteredReadResults(batchResults, paramsByOffsetNumber);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning("Scattered read failed for port offset 0x{0:X4}, batch {1}-{2}: {3}. Falling back to individual DPI reads.",
+                        offset, batch[0], batch[batch.Count - 1], ex.Message);
+                    ReadParameterValuesIndividual(batch, paramsByOffsetNumber, classID);
+                }
+            }
+        }
+
+        /// <summary>
+        /// PowerFlex 750 scattered read request format (per 750-PM001):
+        /// DINT pairs: param_number + pad, param_number + pad, ...
+        /// 8 bytes per parameter, max 32 parameters per request
+        /// </summary>
+        private byte[] BuildPF750ScatteredReadRequest(List<int> parameterNumbers)
+        {
+            byte[] requestData = new byte[parameterNumbers.Count * 8];
+            int pos = 0;
+
+            foreach (int paramNum in parameterNumbers)
+            {
+                // DINT parameter number (little-endian)
+                requestData[pos++] = (byte)(paramNum & 0xFF);
+                requestData[pos++] = (byte)((paramNum >> 8) & 0xFF);
+                requestData[pos++] = (byte)((paramNum >> 16) & 0xFF);
+                requestData[pos++] = (byte)((paramNum >> 24) & 0xFF);
+                // DINT pad
+                requestData[pos++] = 0;
+                requestData[pos++] = 0;
+                requestData[pos++] = 0;
+                requestData[pos++] = 0;
+            }
+
+            return requestData;
+        }
+
+        /// <summary>
+        /// PowerFlex 750 scattered read response format (per 750-PM001):
+        /// DINT pairs: param_number + value, param_number + value, ...
+        /// 8 bytes per parameter. Bit 15 set on param_number indicates error
+        /// (value field contains error code).
+        /// </summary>
+        private Dictionary<int, byte[]> ParsePF750ScatteredReadResponse(byte[] response, List<int> parameterNumbers, Dictionary<int, DeviceParameter> paramsByOffsetNumber)
+        {
+            var results = new Dictionary<int, byte[]>();
+            int pos = 0;
+
+            foreach (int expectedParamNum in parameterNumbers)
+            {
+                if (pos + 8 > response.Length)
+                {
+                    logger.LogWarning("Scattered read response too short at parameter {0}", expectedParamNum);
+                    break;
+                }
+
+                // DINT parameter number (little-endian), bit 15 = error flag
+                int responseParamNum = response[pos] | (response[pos + 1] << 8)
+                    | (response[pos + 2] << 16) | (response[pos + 3] << 24);
+                pos += 4;
+
+                // DINT value (4 bytes)
+                byte[] value = new byte[4];
+                value[0] = response[pos++];
+                value[1] = response[pos++];
+                value[2] = response[pos++];
+                value[3] = response[pos++];
+
+                // Check bit 15 for error
+                if ((responseParamNum & 0x8000) != 0)
+                {
+                    int actualParamNum = responseParamNum & 0x7FFF;
+                    int errorCode = value[0] | (value[1] << 8) | (value[2] << 16) | (value[3] << 24);
+                    string paramInfo = paramsByOffsetNumber.TryGetValue(actualParamNum, out var errParam)
+                        ? $"{errParam.number} [{errParam.name}]"
+                        : $"0x{actualParamNum:X}";
+                    logger.LogWarning("Scattered read: parameter {0} returned error code 0x{1:X}", paramInfo, errorCode);
+                    continue;
+                }
+
+                results[responseParamNum] = value;
+            }
+
+            return results;
+        }
+
+        /// <summary>
+        /// Apply scattered read results to DeviceParameter objects.
+        /// </summary>
+        private void ApplyPF750ScatteredReadResults(Dictionary<int, byte[]> results, Dictionary<int, DeviceParameter> paramsByOffsetNumber)
+        {
+            foreach (var kvp in results)
+            {
+                if (paramsByOffsetNumber.TryGetValue(kvp.Key, out var param) && param.type != null)
+                {
+                    param.value = getParameterValuefromBytes(kvp.Value, param.type);
+                    param.valueHex = Convert.ToHexString(kvp.Value);
+
+                    if (config.OutputVerbose)
+                        Console.WriteLine($"Parameter {param.number} [{param.name}] = {param.value}");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Fallback: read parameters individually via DPI Online Read Full.
+        /// Used when scattered read fails for a batch.
+        /// </summary>
+        private void ReadParameterValuesIndividual(List<int> offsetParamNumbers, Dictionary<int, DeviceParameter> paramsByOffsetNumber, int classID)
+        {
+            foreach (int offsetParamNum in offsetParamNumbers)
+            {
+                if (!paramsByOffsetNumber.TryGetValue(offsetParamNum, out var param))
+                    continue;
+
+                try
+                {
                     var paramData = DPIOnlineReadFull.ByteArrayToDeviceParameter(
-                        readPF750DPIOnlineReadFull(param.number + offset, classID),
+                        readPF750DPIOnlineReadFull(offsetParamNum, classID),
                         logger,
                         this.getParameterValuefromBytes);
 
@@ -244,8 +407,8 @@ namespace powerFlexBackup.cipdevice
                 }
                 catch (Exception ex)
                 {
-                    logger.LogWarning("Failed to read parameter {0} from port offset 0x{1:X}: {2}",
-                        param.number, offset, ex.Message);
+                    logger.LogWarning("Failed to read parameter {0} (offset 0x{1:X}): {2}",
+                        param.number, offsetParamNum, ex.Message);
                 }
             }
         }
