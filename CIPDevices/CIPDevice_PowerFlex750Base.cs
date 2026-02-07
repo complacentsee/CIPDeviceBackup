@@ -81,22 +81,45 @@ namespace powerFlexBackup.cipdevice
 
             var index = 0;
             foreach(DeviceParameterObject PortGroup in parameterObject){
-                var ClassID = 0x9F;
-                //FIXME: This is a hack to to handle the Safe Torque Off Modules not returning paramters.
-                // Need to test if they are parameter objects or not.
-                if(PortGroup.identityObject.ProductName.Contains("Safe Torque Off")){
-                    continue;
+                // Try to get predefined parameter list
+                var predefinedParams = tryGetPredefinedParameterList(
+                    PortGroup.identityObject,
+                    out int classID);
+
+                if (predefinedParams != null)
+                {
+                    // Use predefined list - faster!
+                    Console.WriteLine("Loading predefined parameters for {0}",
+                        PortGroup.identityObject.ProductName);
+
+                    // Add parameters to the port group
+                    PortGroup.ParameterList.AddRange(predefinedParams);
+
+                    // Read actual values for recordable params
+                    readParameterValues(predefinedParams, portMap[PortGroup.Port].Offset, classID);
                 }
-                //NOTE: The 20-COMM-E does not support the 0x9F sine it is a DPI device.
-                //TODO: Should find a more elegant way to handle this. Maybe we
-                // should catch the "Embedded service error" and then try the 0x93 class
-                // instead of manually addressing the special case.
-                if(PortGroup.identityObject.ProductName.Contains("20-COMM-E")){
-                    ClassID = 0x93;
+                else
+                {
+                    // Fall back to dynamic reading for unknown cards
+                    var ClassID = 0x9F;
+                    //FIXME: This is a hack to to handle the Safe Torque Off Modules not returning paramters.
+                    // Need to test if they are parameter objects or not.
+                    if(PortGroup.identityObject.ProductName.Contains("Safe Torque Off")){
+                        continue;
+                    }
+                    //NOTE: The 20-COMM-E does not support the 0x9F sine it is a DPI device.
+                    //TODO: Should find a more elegant way to handle this. Maybe we
+                    // should catch the "Embedded service error" and then try the 0x93 class
+                    // instead of manually addressing the special case.
+                    if(PortGroup.identityObject.ProductName.Contains("20-COMM-E")){
+                        ClassID = 0x93;
+                    }
+
+                    Console.WriteLine("Getting Parameters for {0} (dynamic read)",
+                        PortGroup.identityObject.ProductName);
+                    getAllPortParameters(portMap[PortGroup.Port].Offset, index, ClassID);
                 }
 
-                Console.WriteLine("Getting Parameters for {0}", PortGroup.identityObject.ProductName);
-                getAllPortParameters(portMap[PortGroup.Port].Offset, index, ClassID);
                 index++;
             }
         }
@@ -150,6 +173,81 @@ namespace powerFlexBackup.cipdevice
         public byte[] readPF750DPIOfflineReadFull(int instanceNumber, int ClassID = 0x9F){
             byte[] responseBytes = GetAttributeSingle(ClassID, instanceNumber, 6);
             return responseBytes;
+        }
+
+        /// <summary>
+        /// Try to get predefined parameter list for a PowerFlex 750 port card.
+        /// Returns null if no predefined list exists (triggers fallback to dynamic DPI reading).
+        /// </summary>
+        /// <param name="identity">Identity Object from the port containing ProductCode and ProductName</param>
+        /// <param name="classID">Output: CIP Class ID for parameter access (0x9F or 0x93)</param>
+        /// <returns>List of DeviceParameter definitions if card is known, null if unknown</returns>
+        protected virtual List<DeviceParameter>? tryGetPredefinedParameterList(
+            IdentityObject identity,
+            out int classID)
+        {
+            classID = 0x9F;  // Default to HOST memory class
+
+            var cardDef = PortCards.PowerFlex750PortCard.getCardDefinitionForPort(
+                identity.ProductCode,
+                identity.ProductName);
+
+            if (cardDef != null)
+            {
+                classID = cardDef.ClassID;
+                logger.LogInformation("Using predefined parameter list for {0} (ProductCode {1})",
+                    identity.ProductName, identity.ProductCode);
+                return cardDef.getParameterList();
+            }
+
+            logger.LogInformation("No predefined list for {0} (ProductCode {1}), using dynamic DPI read",
+                identity.ProductName, identity.ProductCode);
+            return null;
+        }
+
+        /// <summary>
+        /// Read actual parameter values for a predefined port card parameter list.
+        /// Only reads recordable parameters (or all if OutputAllRecords is set).
+        ///
+        /// This is faster than dynamic reading because:
+        /// - We know exactly which parameters exist
+        /// - We skip non-recordable parameters
+        /// - We don't need to follow the NextParameter chain
+        /// </summary>
+        /// <param name="parameters">Predefined parameter list from port card definition</param>
+        /// <param name="offset">Port offset from portMap (e.g., 0x4400 for port 1)</param>
+        /// <param name="classID">CIP Class ID for this card type (0x9F or 0x93)</param>
+        protected virtual void readParameterValues(
+            List<DeviceParameter> parameters,
+            int offset,
+            int classID)
+        {
+            foreach (var param in parameters.Where(p => p.record || config.OutputAllRecords))
+            {
+                try
+                {
+                    // Adjust parameter number by port offset
+                    // Example: param.number=1 + offset=0x4400 = read parameter 0x4401 from device
+                    var paramData = DPIOnlineReadFull.ByteArrayToDeviceParameter(
+                        readPF750DPIOnlineReadFull(param.number + offset, classID),
+                        logger,
+                        this.getParameterValuefromBytes);
+
+                    param.value = paramData.ParameterValue.value;
+                    param.valueHex = Convert.ToHexString(paramData.ParameterValue.toBytes());
+
+                    if (param.defaultValue == null)
+                        param.defaultValue = paramData.DefaultValue.value;
+
+                    if (config.OutputVerbose)
+                        Console.WriteLine($"Parameter {param.number} [{param.name}] = {param.value}");
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning("Failed to read parameter {0} from port offset 0x{1:X}: {2}",
+                        param.number, offset, ex.Message);
+                }
+            }
         }
 
         public class PortParameterMap{
