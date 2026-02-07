@@ -15,9 +15,6 @@ namespace powerFlexBackup.cipdevice
             Console.WriteLine("Generic CIP Device Created");
         }
 
-        public override void setInstanceAttributes(int instance = 0){
-        }
-
         public override void getDeviceParameterValues(){
             getDeviceParameterValuesCIPStandardCompliant();
         }

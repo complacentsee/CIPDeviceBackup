@@ -387,7 +387,7 @@ namespace powerFlexBackup.cipdevice
                 case 0xD3:
                     return CIPDeviceHelper.convertBytestoQWORD(parameterValueBytes);
 
-                // Non-standard type codes (used by 20-COMM-D DeviceNet adapter)
+                // Non-standard type codes (used by 20-COMM-D DeviceNet adapter and E3 devices)
                 // Determined empirically from parameter value byte sizes
                 case 0x01:  // WORD - 16-bit bitmask (DeviceNet equivalent of 0xD2)
                     return CIPDeviceHelper.convertBytestoWORD(parameterValueBytes);
@@ -397,6 +397,9 @@ namespace powerFlexBackup.cipdevice
 
                 case 0x03:  // INT - 16-bit signed (DeviceNet equivalent of 0xC3)
                     return CIPDeviceHelper.convertBytesToINT16LittleEndian(parameterValueBytes);
+
+                case 0x04:  // BOOL - boolean (DeviceNet equivalent of 0xC1)
+                    return CIPDeviceHelper.convertBytestoBOOL(parameterValueBytes);
 
                 case 0x06:  // DINT - 32-bit signed (DeviceNet equivalent of 0xC4)
                     return CIPDeviceHelper.convertBytestoINT32LittleEndian(parameterValueBytes);
