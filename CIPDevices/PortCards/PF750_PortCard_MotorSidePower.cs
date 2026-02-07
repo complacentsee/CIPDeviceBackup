@@ -14,7 +14,6 @@ namespace powerFlexBackup.cipdevice.PortCards
         public override ushort[] ProductCodes => [6050];
         public override string ProductName => "Motor Side Power";
         public override int ClassID => 0x9F;
-        public override bool UseScatteredRead => false;
 
         protected override string parameterListJSON => @"[
             { 'number': '1', 'name': 'Sys Rated Amps', 'defaultValue': '0', 'record': 'false', 'type': 'yg==' },

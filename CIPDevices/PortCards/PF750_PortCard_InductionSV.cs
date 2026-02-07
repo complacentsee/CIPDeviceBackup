@@ -14,7 +14,6 @@ namespace powerFlexBackup.cipdevice.PortCards
         public override ushort[] ProductCodes => [417];
         public override string ProductName => "Induction SV";
         public override int ClassID => 0x9F;
-        public override bool UseScatteredRead => false;
 
         protected override string parameterListJSON => @"[
             { 'number': '1', 'name': 'Output Frequency', 'defaultValue': '0', 'record': 'false', 'type': 'yg==' },

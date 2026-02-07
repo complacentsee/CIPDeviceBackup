@@ -342,19 +342,29 @@ namespace powerFlexBackup.cipdevice
                 value[2] = response[pos++];
                 value[3] = response[pos++];
 
-                // Check bit 15 for error
-                if ((responseParamNum & 0x8000) != 0)
+                // Check for error: device toggles bit 15 on the parameter number.
+                // Compare against expected to detect error, since high-offset ports
+                // (e.g., 755TS Port 10 at 0xA000) already have bit 15 set in normal param numbers.
+                if (responseParamNum == expectedParamNum)
                 {
-                    int actualParamNum = responseParamNum & 0x7FFF;
-                    int errorCode = value[0] | (value[1] << 8) | (value[2] << 16) | (value[3] << 24);
-                    string paramInfo = paramsByOffsetNumber.TryGetValue(actualParamNum, out var errParam)
-                        ? $"{errParam.number} [{errParam.name}]"
-                        : $"0x{actualParamNum:X}";
-                    logger.LogWarning("Scattered read: parameter {0} returned error code 0x{1:X}", paramInfo, errorCode);
-                    continue;
+                    // Success: response matches what we sent
+                    results[responseParamNum] = value;
                 }
-
-                results[responseParamNum] = value;
+                else if (responseParamNum == (expectedParamNum ^ 0x8000))
+                {
+                    // Error: bit 15 was toggled by the device
+                    int errorCode = value[0] | (value[1] << 8) | (value[2] << 16) | (value[3] << 24);
+                    string paramInfo = paramsByOffsetNumber.TryGetValue(expectedParamNum, out var errParam)
+                        ? $"{errParam.number} [{errParam.name}]"
+                        : $"0x{expectedParamNum:X}";
+                    logger.LogWarning("Scattered read: parameter {0} returned error code 0x{1:X}", paramInfo, errorCode);
+                }
+                else
+                {
+                    // Unexpected parameter number in response
+                    logger.LogWarning("Scattered read: unexpected response param 0x{0:X}, expected 0x{1:X}",
+                        responseParamNum, expectedParamNum);
+                }
             }
 
             return results;
