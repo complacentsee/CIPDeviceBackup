@@ -6,13 +6,13 @@ namespace powerFlexBackup.cipdevice.PortCards
     /// PowerFlex 750 Series built-in EtherNet/IP port.
     /// Typically found on Port 4 of PF753/PF755 drives.
     ///
-    /// Parameters include DeviceLogix network I/O mapping (DL From/To Net),
+    /// Parameters include Datalinks, network I/O mapping (DL From/To Net),
     /// fault actions, and fault configuration for DeviceLogix channels.
     /// </summary>
     public class PF750_PortCard_EthernetIP : PowerFlex750PortCard
     {
         public override ushort[] ProductCodes => [57760];
-        public override string ProductName => "EtherNet/IP";
+        public override string ProductName => "xEtherNet/IP";
         public override int ClassID => 0x9F;
         public override bool UseScatteredRead => false;
 
