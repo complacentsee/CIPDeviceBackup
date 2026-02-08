@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 namespace powerFlexBackup.cipdevice.deviceParameterObjects
 {
     public class DeviceParameterObject
@@ -7,6 +8,7 @@ namespace powerFlexBackup.cipdevice.deviceParameterObjects
         public int ClassID { get; set; } = 0x0F;
         public int Port { get; set; } = 0;
         public IdentityObject identityObject = new IdentityObject();
+        [JsonConverter(typeof(CompactListJsonConverter))]
         public List<DeviceParameter> ParameterList { get; set; } = default!;
         
         [JsonIgnore]
@@ -42,5 +44,32 @@ namespace powerFlexBackup.cipdevice.deviceParameterObjects
         }
 
         //public bool ShouldSerializePort() {return Port > 1;}
+    }
+
+    /// <summary>
+    /// Serializes each list element as a compact single-line JSON object
+    /// while the parent object remains indented.
+    /// </summary>
+    public class CompactListJsonConverter : JsonConverter<List<DeviceParameter>>
+    {
+        public override void WriteJson(JsonWriter writer, List<DeviceParameter>? value, JsonSerializer serializer)
+        {
+            writer.WriteStartArray();
+            if (value != null)
+            {
+                foreach (var item in value)
+                {
+                    var token = JToken.FromObject(item, serializer);
+                    writer.WriteRawValue(token.ToString(Formatting.None));
+                }
+            }
+            writer.WriteEndArray();
+        }
+
+        public override List<DeviceParameter>? ReadJson(JsonReader reader, Type objectType, List<DeviceParameter>? existingValue, bool hasExistingValue, JsonSerializer serializer)
+        {
+            var array = JArray.Load(reader);
+            return array.ToObject<List<DeviceParameter>>();
+        }
     }
 }

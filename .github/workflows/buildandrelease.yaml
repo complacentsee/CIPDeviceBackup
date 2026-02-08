@@ -11,8 +11,25 @@ permissions:
   contents: write
 
 jobs:
-  release:
+  create-release:
+    name: Create Release
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || \
+            gh release create "$GITHUB_REF_NAME" --generate-notes
+
+  build:
     name: Build & Release
+    needs: create-release
+    if: always()
     strategy:
       fail-fast: false
       matrix:
@@ -46,9 +63,9 @@ jobs:
           if [[ $GITHUB_REF != refs/tags/* ]]; then
             VERSION="dev-$(git rev-parse --short HEAD)"
           fi
-          
+
           ARTIFACT_NAME="CIPDeviceBackup-$VERSION-${{ matrix.target }}"
-          
+
           dotnet publish \
             --configuration Release \
             --runtime "${{ matrix.target }}" \
@@ -69,6 +86,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          tag="$GITHUB_REF_NAME"; asset="CIPDeviceBackup-*-${{ matrix.target }}.*"; \
-          gh release view "$tag" >/dev/null 2>&1 || gh release create "$tag" --generate-notes; \
-          gh release upload "$tag" $asset --clobber
+          gh release upload "$GITHUB_REF_NAME" CIPDeviceBackup-*-${{ matrix.target }}.* --clobber

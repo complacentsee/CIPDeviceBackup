@@ -244,12 +244,12 @@ namespace powerFlexBackup.cipdevice
             if (CIPRoute.Length > 0) {
                 try{return eeipClient.GetAttributeSingle(CIPRoute, classID, instanceID, attributeID);}
                 catch(Exception e){
-                    logger.LogError("Failed to get attribute single (ClassID: {0}, InstanceID: {1}, AttributeID: {2}): {3}", classID, instanceID, attributeID, e.Message);
+                    logger.LogError("Failed to get attribute single (ClassID: 0x{0:X2}, InstanceID: {1}, AttributeID: {2}): {3}", classID, instanceID, attributeID, e.Message);
                     return new byte[0];}
             } else {
                 try{return eeipClient.GetAttributeSingle(classID, instanceID, attributeID);}
                 catch(Exception e){
-                    logger.LogError("Failed to get attribute single (ClassID: {0}, InstanceID: {1}, AttributeID: {2}): {3}", classID, instanceID, attributeID, e.Message);
+                    logger.LogError("Failed to get attribute single (ClassID: 0x{0:X2}, InstanceID: {1}, AttributeID: {2}): {3}", classID, instanceID, attributeID, e.Message);
                     return new byte[0];}
             }
         }
