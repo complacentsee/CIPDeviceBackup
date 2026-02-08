@@ -15,7 +15,7 @@ namespace powerFlexBackup.cipdevice.PortCards
         public override string ProductName => "Motor Side Power";
         public override int ClassID => 0x9F;
 
-        protected override string parameterListJSON => @"[
+        protected override string hostParameterListJSON => @"[
             { 'number': '1', 'name': 'Sys Rated Amps', 'defaultValue': '0', 'record': 'false', 'type': 'yg==' },
             { 'number': '2', 'name': 'Sys Rated Volts', 'defaultValue': '0', 'record': 'false', 'type': 'yg==' },
             { 'number': '11', 'name': 'M CorProt Status', 'defaultValue': '00000000000000000000000000000000', 'record': 'false', 'type': '0w==' },

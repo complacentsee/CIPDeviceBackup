@@ -76,16 +76,19 @@ namespace powerFlexBackup.cipdevice
 
         public override void getAllDeviceParameters(){
             getAllDevicePortIdentities();
-            var length = parameterObject.Count;
-            Console.WriteLine("Number of Device Parameter Objects: {0}", length);
+            var originalCount = parameterObject.Count;
+            Console.WriteLine("Number of Device Parameter Objects: {0}", originalCount);
 
-            var index = 0;
-            foreach(DeviceParameterObject PortGroup in parameterObject){
+            for (int index = 0; index < originalCount; index++){
+                var PortGroup = parameterObject[index];
+
                 // Try to get predefined parameter list
                 var predefinedParams = tryGetPredefinedParameterList(
                     PortGroup.identityObject,
                     out int classID,
-                    out bool useScatteredRead);
+                    out bool useScatteredRead,
+                    out int? deviceClassID,
+                    out List<DeviceParameter>? deviceParams);
 
                 if (predefinedParams != null)
                 {
@@ -93,11 +96,43 @@ namespace powerFlexBackup.cipdevice
                     Console.WriteLine("Loading predefined parameters for {0}",
                         PortGroup.identityObject.ProductName);
 
+                    // Set the ClassID on the port group so it serializes correctly
+                    PortGroup.ClassID = classID;
+
                     // Add parameters to the port group
                     PortGroup.ParameterList.AddRange(predefinedParams);
 
                     // Read actual values for recordable params
                     readParameterValues(predefinedParams, portMap[PortGroup.Port].Offset, classID, useScatteredRead);
+
+                    // If this card also has device-class parameters, read them
+                    if (deviceClassID.HasValue)
+                    {
+                        Console.WriteLine("Reading device class 0x{0:X} parameters for {1}",
+                            deviceClassID.Value, PortGroup.identityObject.ProductName);
+
+                        var deviceParamObj = new DeviceParameterObject(
+                            deviceClassID.Value,
+                            PortGroup.identityObject,
+                            new List<DeviceParameter>(),
+                            PortGroup.Port);
+                        parameterObject.Add(deviceParamObj);
+
+                        if (deviceParams != null)
+                        {
+                            // Use predefined device parameter list
+                            deviceParamObj.ParameterList.AddRange(deviceParams);
+                            readParameterValues(deviceParams, portMap[PortGroup.Port].Offset, deviceClassID.Value, useScatteredRead);
+                        }
+                        else
+                        {
+                            // Fall back to dynamic DPI read for device class
+                            getAllPortParameters(
+                                portMap[PortGroup.Port].Offset,
+                                parameterObject.Count - 1,
+                                deviceClassID.Value);
+                        }
+                    }
                 }
                 else
                 {
@@ -120,8 +155,6 @@ namespace powerFlexBackup.cipdevice
                         PortGroup.identityObject.ProductName);
                     getAllPortParameters(portMap[PortGroup.Port].Offset, index, ClassID);
                 }
-
-                index++;
             }
         }
 
@@ -186,10 +219,14 @@ namespace powerFlexBackup.cipdevice
         protected virtual List<DeviceParameter>? tryGetPredefinedParameterList(
             IdentityObject identity,
             out int classID,
-            out bool useScatteredRead)
+            out bool useScatteredRead,
+            out int? deviceClassID,
+            out List<DeviceParameter>? deviceParams)
         {
             classID = 0x9F;  // Default to HOST memory class
             useScatteredRead = true;
+            deviceClassID = null;
+            deviceParams = null;
 
             var cardDef = PortCards.PowerFlex750PortCard.getCardDefinitionForPort(
                 identity.ProductCode,
@@ -199,6 +236,8 @@ namespace powerFlexBackup.cipdevice
             {
                 classID = cardDef.ClassID;
                 useScatteredRead = cardDef.UseScatteredRead;
+                deviceClassID = cardDef.DeviceClassID;
+                deviceParams = cardDef.getDeviceParameterList();
                 logger.LogInformation("Using predefined parameter list for {0} (ProductCode {1})",
                     identity.ProductName, identity.ProductCode);
                 return cardDef.getParameterList();

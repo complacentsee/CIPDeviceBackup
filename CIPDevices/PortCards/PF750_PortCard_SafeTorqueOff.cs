@@ -19,6 +19,6 @@ namespace powerFlexBackup.cipdevice.PortCards
 
         // Safe Torque Off modules don't expose CIP-accessible parameters
         // Empty list prevents dynamic read attempts
-        protected override string parameterListJSON => @"[]";
+        protected override string hostParameterListJSON => @"[]";
     }
 }

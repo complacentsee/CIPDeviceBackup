@@ -15,7 +15,7 @@ namespace powerFlexBackup.cipdevice.PortCards
         public override string ProductName => "I/O Module 24V";
         public override int ClassID => 0x9F;
 
-        protected override string parameterListJSON => @"[
+        protected override string hostParameterListJSON => @"[
             { 'number': '1', 'name': 'Dig In Sts', 'defaultValue': '0000000000000000', 'record': 'false', 'type': '0g==' },
             { 'number': '2', 'name': 'Dig In Filt Mask', 'defaultValue': '0000000000111111', 'record': 'true', 'type': '0g==' },
             { 'number': '3', 'name': 'Dig In Filt', 'defaultValue': '4', 'record': 'true', 'type': 'yA==' },

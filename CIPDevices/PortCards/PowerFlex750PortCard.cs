@@ -43,10 +43,26 @@ namespace powerFlexBackup.cipdevice.PortCards
         public virtual bool UseScatteredRead => true;
 
         /// <summary>
+        /// Optional secondary CIP Class ID for device-level parameters.
+        /// Some cards (e.g., EtherNet/IP adapters) have parameters in two classes:
+        /// - Primary ClassID (0x9F HOST): datalinks, fault config
+        /// - DeviceClassID (0x90 DEVICE): IP config, subnet, gateway, peer config
+        /// When set, the device class params are read dynamically via DPI Online Read Full.
+        /// </summary>
+        public virtual int? DeviceClassID => null;
+
+        /// <summary>
         /// JSON string containing parameter list definition.
         /// Parameters use relative numbering (1, 2, 3...) - port offset is added at runtime.
         /// </summary>
-        protected abstract string parameterListJSON { get; }
+        protected abstract string hostParameterListJSON { get; }
+
+        /// <summary>
+        /// Optional JSON string for device-class parameter list.
+        /// Override when DeviceClassID is set to provide a predefined device parameter list.
+        /// When null, device class params are read dynamically.
+        /// </summary>
+        protected virtual string? deviceParameterListJSON => null;
 
         /// <summary>
         /// Deserialize and return parameter list for this card type.
@@ -54,7 +70,17 @@ namespace powerFlexBackup.cipdevice.PortCards
         /// </summary>
         public List<DeviceParameter> getParameterList()
         {
-            return JsonConvert.DeserializeObject<List<DeviceParameter>>(parameterListJSON)!;
+            return JsonConvert.DeserializeObject<List<DeviceParameter>>(hostParameterListJSON)!;
+        }
+
+        /// <summary>
+        /// Deserialize and return device-class parameter list if defined.
+        /// Returns null if no device parameter list is configured.
+        /// </summary>
+        public List<DeviceParameter>? getDeviceParameterList()
+        {
+            if (deviceParameterListJSON == null) return null;
+            return JsonConvert.DeserializeObject<List<DeviceParameter>>(deviceParameterListJSON)!;
         }
 
         /// <summary>
