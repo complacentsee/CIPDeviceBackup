@@ -1,0 +1,6 @@
+# PowerFlex 750 Series Device List
+# One IP address per line. Lines starting with # are comments. Blank lines are skipped.
+#
+# Usage:
+#   .\Run-Backups.ps1 -DeviceList devices.txt
+#

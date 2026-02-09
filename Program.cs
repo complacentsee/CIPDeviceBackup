@@ -118,13 +118,13 @@ namespace powerFlexBackup
                 var config = serviceProvider.GetRequiredService<IOptions<AppConfiguration>>().Value;
                 AppConfiguration.OutputAllRecordsStatic = config.OutputAllRecords;
 
-                mainProgram(serviceProvider);
+                Environment.ExitCode = mainProgram(serviceProvider);
             });
 
             var parseResult = rootCommand.Parse(args);
             return parseResult.Invoke();
 
-            void mainProgram(IServiceProvider serviceProvider){
+            int mainProgram(IServiceProvider serviceProvider){
 
                 // Get services from DI container
                 var cipDeviceFactory = serviceProvider.GetRequiredService<CIPDeviceFactory>();
@@ -173,12 +173,12 @@ namespace powerFlexBackup
                 catch(Exception e){
                     logger.LogError(e.Message);
                     Thread.Sleep(500);
-                    return;
+                    return 1;
                 }
 
                 eeipClient.UnRegisterSession();
                 Thread.Sleep(250);
-                return;
+                return 0;
             }
 
         }

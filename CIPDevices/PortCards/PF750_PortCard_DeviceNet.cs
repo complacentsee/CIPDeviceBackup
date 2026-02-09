@@ -1,21 +1,16 @@
 namespace powerFlexBackup.cipdevice.PortCards
 {
     /// <summary>
-    /// Embedded EtherNet/IP Communication Adapter
+    /// Port  6 - DeviceNet Port Card
     ///
-    /// PowerFlex 750 Series built-in EtherNet/IP port.
-    /// Typically found on Port 4 of PF753/PF755 drives.
-    ///
-    /// HOST class (0x9F): Datalinks, fault actions, fault configuration (predefined, 54 params).
-    /// DEVICE class (0x93): IP config, subnet, gateway, web features,
-    /// peer-to-peer config (predefined, 43 params).
+    /// 54 parameters (54 writable, 0 read-only).
+    /// Types: yA== (0xC8 DINT), yg== (0xCA REAL), 0w== (0xD3 LWORD)
     /// </summary>
-    public class PF750_PortCard_EthernetIP : PowerFlex750PortCard
+    public class PF750_PortCard_Port6DeviceNet : PowerFlex750PortCard
     {
-        public override ushort[] ProductCodes => [57760];
-        public override string ProductName => "EtherNet/IP";
+        public override ushort[] ProductCodes => [57504];
+        public override string ProductName => "DeviceNet";
         public override int HostClassID => 0x9F;
-        public override bool UseScatteredRead => false; // we get errors at parameter 44 on scattered reads.
         public override int? DeviceClassID => 0x93;
 
         protected override string hostParameterListJSON => @"[
@@ -76,49 +71,20 @@ namespace powerFlexBackup.cipdevice.PortCards
         ]";
 
         protected override string? deviceParameterListJSON => @"[
-            { 'number': '1', 'name': 'Operating Mode', 'defaultValue': '0', 'record': 'false', 'type': 'xg==' },
-            { 'number': '2', 'name': 'Port Number', 'defaultValue': '5', 'record': 'false', 'type': 'xg==' },
+            { 'number': '1', 'name': 'Port Number', 'defaultValue': '5', 'record': 'false', 'type': 'xg==' },
+            { 'number': '2', 'name': 'DLs From Net Cfg', 'defaultValue': '0', 'record': 'true', 'type': 'xg==' },
             { 'number': '3', 'name': 'DLs From Net Act', 'defaultValue': '0', 'record': 'false', 'type': 'xg==' },
-            { 'number': '4', 'name': 'DLs To Net Act', 'defaultValue': '0', 'record': 'false', 'type': 'xg==' },
-            { 'number': '5', 'name': 'Net Addr Sel', 'defaultValue': '3', 'record': 'true', 'type': 'xg==' },
-            { 'number': '6', 'name': 'Net Addr Src', 'defaultValue': '3', 'record': 'false', 'type': 'xg==' },
-            { 'number': '7', 'name': 'IP Addr Cfg 1', 'defaultValue': '0', 'record': 'true', 'type': 'xg==' },
-            { 'number': '8', 'name': 'IP Addr Cfg 2', 'defaultValue': '0', 'record': 'true', 'type': 'xg==' },
-            { 'number': '9', 'name': 'IP Addr Cfg 3', 'defaultValue': '0', 'record': 'true', 'type': 'xg==' },
-            { 'number': '10', 'name': 'IP Addr Cfg 4', 'defaultValue': '0', 'record': 'true', 'type': 'xg==' },
-            { 'number': '11', 'name': 'Subnet Cfg 1', 'defaultValue': '0', 'record': 'true', 'type': 'xg==' },
-            { 'number': '12', 'name': 'Subnet Cfg 2', 'defaultValue': '0', 'record': 'true', 'type': 'xg==' },
-            { 'number': '13', 'name': 'Subnet Cfg 3', 'defaultValue': '0', 'record': 'true', 'type': 'xg==' },
-            { 'number': '14', 'name': 'Subnet Cfg 4', 'defaultValue': '0', 'record': 'true', 'type': 'xg==' },
-            { 'number': '15', 'name': 'Gateway Cfg 1', 'defaultValue': '0', 'record': 'true', 'type': 'xg==' },
-            { 'number': '16', 'name': 'Gateway Cfg 2', 'defaultValue': '0', 'record': 'true', 'type': 'xg==' },
-            { 'number': '17', 'name': 'Gateway Cfg 3', 'defaultValue': '0', 'record': 'true', 'type': 'xg==' },
-            { 'number': '18', 'name': 'Gateway Cfg 4', 'defaultValue': '0', 'record': 'true', 'type': 'xg==' },
-            { 'number': '19', 'name': 'Net Rate Cfg 1', 'defaultValue': '0', 'record': 'true', 'type': 'xg==' },
-            { 'number': '20', 'name': 'Net Rate Act 1', 'defaultValue': '0', 'record': 'false', 'type': 'xg==' },
-            { 'number': '21', 'name': 'Net Rate Cfg 2', 'defaultValue': '0', 'record': 'true', 'type': 'xg==' },
-            { 'number': '22', 'name': 'Net Rate Act 2', 'defaultValue': '0', 'record': 'false', 'type': 'xg==' },
-            { 'number': '23', 'name': 'Reserved', 'defaultValue': '0', 'record': 'false', 'type': 'xg==' },
-            { 'number': '24', 'name': 'Reserved', 'defaultValue': '0', 'record': 'false', 'type': 'xg==' },
-            { 'number': '25', 'name': 'Reset Module', 'defaultValue': '0', 'record': 'true', 'type': 'xg==' },
-            { 'number': '26', 'name': 'Web Enable', 'defaultValue': '0', 'record': 'true', 'type': 'xg==' },
-            { 'number': '27', 'name': 'Web Features', 'defaultValue': '00000001', 'record': 'true', 'type': '0Q==' },
-            { 'number': '28', 'name': 'DLs Fr Peer Cfg', 'defaultValue': '0', 'record': 'true', 'type': 'xg==' },
-            { 'number': '29', 'name': 'DLs Fr Peer Act', 'defaultValue': '0', 'record': 'false', 'type': 'xg==' },
-            { 'number': '30', 'name': 'Logic Src Cfg', 'defaultValue': '0', 'record': 'true', 'type': 'xg==' },
-            { 'number': '31', 'name': 'Ref Src Cfg', 'defaultValue': '0', 'record': 'true', 'type': 'xg==' },
-            { 'number': '32', 'name': 'Fr Peer Timeout', 'defaultValue': '1000', 'record': 'true', 'type': 'xw==' },
-            { 'number': '33', 'name': 'Fr Peer Addr 1', 'defaultValue': '0', 'record': 'true', 'type': 'xg==' },
-            { 'number': '34', 'name': 'Fr Peer Addr 2', 'defaultValue': '0', 'record': 'true', 'type': 'xg==' },
-            { 'number': '35', 'name': 'Fr Peer Addr 3', 'defaultValue': '0', 'record': 'true', 'type': 'xg==' },
-            { 'number': '36', 'name': 'Fr Peer Addr 4', 'defaultValue': '0', 'record': 'true', 'type': 'xg==' },
-            { 'number': '37', 'name': 'Fr Peer Enable', 'defaultValue': '0', 'record': 'true', 'type': 'xg==' },
-            { 'number': '38', 'name': 'Fr Peer Status', 'defaultValue': '0', 'record': 'false', 'type': 'xg==' },
-            { 'number': '39', 'name': 'DLs To Peer Cfg', 'defaultValue': '0', 'record': 'true', 'type': 'xg==' },
-            { 'number': '40', 'name': 'DLs To Peer Act', 'defaultValue': '0', 'record': 'false', 'type': 'xg==' },
-            { 'number': '41', 'name': 'To Peer Period', 'defaultValue': '1000', 'record': 'true', 'type': 'xw==' },
-            { 'number': '42', 'name': 'To Peer Skip', 'defaultValue': '1', 'record': 'true', 'type': 'xg==' },
-            { 'number': '43', 'name': 'To Peer Enable', 'defaultValue': '0', 'record': 'true', 'type': 'xg==' }
+            { 'number': '4', 'name': 'DLs To Net Cfg', 'defaultValue': '0', 'record': 'true', 'type': 'xg==' },
+            { 'number': '5', 'name': 'DLs To Net Act', 'defaultValue': '0', 'record': 'false', 'type': 'xg==' },
+            { 'number': '6', 'name': 'Net Addr Src', 'defaultValue': '0', 'record': 'false', 'type': 'xg==' },
+            { 'number': '7', 'name': 'Net Addr Cfg', 'defaultValue': '63', 'record': 'true', 'type': 'xg==' },
+            { 'number': '8', 'name': 'Net Addr Act', 'defaultValue': '63', 'record': 'false', 'type': 'xg==' },
+            { 'number': '9', 'name': 'Net Rate Cfg', 'defaultValue': '3', 'record': 'true', 'type': 'xg==' },
+            { 'number': '10', 'name': 'Net Rate Act', 'defaultValue': '0', 'record': 'false', 'type': 'xg==' },
+            { 'number': '11', 'name': 'COS Status Mask', 'defaultValue': '00000000000000000000000000000000', 'record': 'true', 'type': '0w==' },
+            { 'number': '12', 'name': 'COS Fdbk Change', 'defaultValue': '0', 'record': 'true', 'type': 'yg==' },
+            { 'number': '13', 'name': 'COS/Cyc Interval', 'defaultValue': '0', 'record': 'false', 'type': 'xw==' },
+            { 'number': '14', 'name': 'Reset Module', 'defaultValue': '0', 'record': 'true', 'type': 'xg==' }
         ]";
     }
 }

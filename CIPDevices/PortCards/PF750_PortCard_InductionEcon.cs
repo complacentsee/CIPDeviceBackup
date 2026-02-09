@@ -1,18 +1,15 @@
 namespace powerFlexBackup.cipdevice.PortCards
 {
     /// <summary>
-    /// Induction SV Port Card
+    /// Port 10 - Induction Econ Port Card
     ///
-    /// PowerFlex 750 Series Induction SV port card at Port 10.
-    /// ProductCode 417 identifies the Induction SV.
-    ///
-    /// 462 parameters (398 writable, 64 read-only).
-    /// Types: yg== (0xCA REAL), yA== (0xC8 DINT), 0g== (0xD2 DWORD), 0w== (0xD3 LWORD), xg== (0xC6 INT)
+    /// 465 parameters (401 writable, 64 read-only).
+    /// Types: xg== (0xC6 INT), yA== (0xC8 DINT), yg== (0xCA REAL), 0g== (0xD2 DWORD), 0w== (0xD3 LWORD)
     /// </summary>
-    public class PF750_PortCard_InductionSV : PowerFlex750PortCard
+    public class PF750_PortCard_Port10InductionEcon : PowerFlex750PortCard
     {
-        public override ushort[] ProductCodes => [417];
-        public override string ProductName => "Induction SV";
+        public override ushort[] ProductCodes => [673];
+        public override string ProductName => "Induction Econ";
         public override int HostClassID => 0x9F;
 
         protected override string hostParameterListJSON => @"[
@@ -79,7 +76,7 @@ namespace powerFlexBackup.cipdevice.PortCards
             { 'number': '140', 'name': 'Flux Braking Ki', 'defaultValue': '10000', 'record': 'true', 'type': 'yg==' },
             { 'number': '141', 'name': 'Flux Braking Lim', 'defaultValue': '125', 'record': 'true', 'type': 'yg==' },
             { 'number': '145', 'name': 'Stop Dwell Time', 'defaultValue': '0', 'record': 'true', 'type': 'yg==' },
-            { 'number': '146', 'name': 'Zero Speed Limit', 'defaultValue': '0.05866667', 'record': 'true', 'type': 'yg==' },
+            { 'number': '146', 'name': 'Zero Speed Limit', 'defaultValue': '0.05891667', 'record': 'true', 'type': 'yg==' },
             { 'number': '151', 'name': 'DC Brake Lvl Sel', 'defaultValue': '100152', 'record': 'true', 'type': 'yA==' },
             { 'number': '152', 'name': 'DC Brake Level', 'defaultValue': '1', 'record': 'true', 'type': 'yg==' },
             { 'number': '153', 'name': 'DC Brake Time', 'defaultValue': '0', 'record': 'true', 'type': 'yg==' },
@@ -202,12 +199,15 @@ namespace powerFlexBackup.cipdevice.PortCards
             { 'number': '489', 'name': 'c Slip RPM atFLA', 'defaultValue': '20', 'record': 'false', 'type': 'yg==' },
             { 'number': '490', 'name': 'u Slip RPM atFLA', 'defaultValue': '0', 'record': 'true', 'type': 'yg==' },
             { 'number': '491', 'name': 'Slip Comp LPF BW', 'defaultValue': '1.5', 'record': 'true', 'type': 'yg==' },
+            { 'number': '500', 'name': 'Econ At Ref Ki', 'defaultValue': '305', 'record': 'true', 'type': 'yg==' },
+            { 'number': '501', 'name': 'Econ AccDec Kp', 'defaultValue': '100', 'record': 'true', 'type': 'yg==' },
+            { 'number': '502', 'name': 'Econ AccDec Ki', 'defaultValue': '200', 'record': 'true', 'type': 'yg==' },
             { 'number': '510', 'name': 'MtrParam C/U Sel', 'defaultValue': '0', 'record': 'true', 'type': 'yA==' },
             { 'number': '511', 'name': 'c IM Stator Res', 'defaultValue': '0', 'record': 'false', 'type': 'yg==' },
             { 'number': '512', 'name': 'u IM Stator Res', 'defaultValue': '0', 'record': 'true', 'type': 'yg==' },
             { 'number': '514', 'name': 'c IM Leakage L', 'defaultValue': '0', 'record': 'false', 'type': 'yg==' },
             { 'number': '515', 'name': 'u IM Leakage L', 'defaultValue': '0', 'record': 'true', 'type': 'yg==' },
-            { 'number': '517', 'name': 'c Flux Cur Ref', 'defaultValue': '8.05', 'record': 'false', 'type': 'yg==' },
+            { 'number': '517', 'name': 'c Flux Cur Ref', 'defaultValue': '5.8450003', 'record': 'false', 'type': 'yg==' },
             { 'number': '518', 'name': 'u Flux Cur Ref', 'defaultValue': '0', 'record': 'true', 'type': 'yg==' },
             { 'number': '910', 'name': 'Autotune', 'defaultValue': '0', 'record': 'true', 'type': 'yA==' },
             { 'number': '912', 'name': 'Autotune Vel Lim', 'defaultValue': '75', 'record': 'true', 'type': 'yg==' },
@@ -398,7 +398,7 @@ namespace powerFlexBackup.cipdevice.PortCards
             { 'number': '1419', 'name': 'S16 Blend P2 Sel', 'defaultValue': '800', 'record': 'true', 'type': 'yA==' },
             { 'number': '1640', 'name': 'Home Ctrl Opts', 'defaultValue': '0000000000100000', 'record': 'true', 'type': '0g==' },
             { 'number': '1641', 'name': 'Home Status', 'defaultValue': '0000000000000000', 'record': 'false', 'type': '0g==' },
-            { 'number': '1643', 'name': 'Find Home Speed', 'defaultValue': '5.866667', 'record': 'true', 'type': 'yg==' },
+            { 'number': '1643', 'name': 'Find Home Speed', 'defaultValue': '5.891667', 'record': 'true', 'type': 'yg==' },
             { 'number': '1644', 'name': 'Find Home Ramp', 'defaultValue': '10', 'record': 'true', 'type': 'yg==' },
             { 'number': '1800', 'name': 'VRef A Sel', 'defaultValue': '214', 'record': 'true', 'type': 'yA==' },
             { 'number': '1801', 'name': 'VRef A Stpt', 'defaultValue': '0', 'record': 'true', 'type': 'yg==' },

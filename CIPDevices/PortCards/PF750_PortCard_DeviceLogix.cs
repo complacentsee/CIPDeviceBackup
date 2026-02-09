@@ -13,7 +13,7 @@ namespace powerFlexBackup.cipdevice.PortCards
     {
         public override ushort[] ProductCodes => [33184];
         public override string ProductName => "DeviceLogix";
-        public override int ClassID => 0x9F;
+        public override int HostClassID => 0x9F;
 
         protected override string hostParameterListJSON => @"[
             { 'number': '1', 'name': 'DLX Out 01', 'defaultValue': '0', 'record': 'true', 'type': 'yA==' },

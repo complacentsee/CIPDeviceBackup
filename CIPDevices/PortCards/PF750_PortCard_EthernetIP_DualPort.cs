@@ -15,7 +15,7 @@ namespace powerFlexBackup.cipdevice.PortCards
     {
         public override ushort[] ProductCodes => [32928];
         public override string ProductName => "EtherNet/IP";
-        public override int ClassID => 0x9F;
+        public override int HostClassID => 0x9F;
         public override int? DeviceClassID => 0x93;
         public override bool UseScatteredRead => true;
 

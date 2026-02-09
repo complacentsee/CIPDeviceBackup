@@ -234,7 +234,7 @@ namespace powerFlexBackup.cipdevice
 
             if (cardDef != null)
             {
-                classID = cardDef.ClassID;
+                classID = cardDef.HostClassID;
                 useScatteredRead = cardDef.UseScatteredRead;
                 deviceClassID = cardDef.DeviceClassID;
                 deviceParams = cardDef.getDeviceParameterList();
@@ -381,22 +381,34 @@ namespace powerFlexBackup.cipdevice
                 value[2] = response[pos++];
                 value[3] = response[pos++];
 
-                // Check for error: device toggles bit 15 on the parameter number.
-                // Compare against expected to detect error, since high-offset ports
+                // Check for error: device toggles an error bit on the parameter number.
+                // PF753 (DeviceType 142) toggles bit 15 (0x8000).
+                // PF755TS (DeviceType 143) toggles bit 31 (0x80000000).
+                // Compare against expected to detect either, since high-offset ports
                 // (e.g., 755TS Port 10 at 0xA000) already have bit 15 set in normal param numbers.
+                bool isErrorBit15 = responseParamNum == (expectedParamNum ^ 0x8000);
+                bool isErrorBit31 = responseParamNum == (expectedParamNum ^ unchecked((int)0x80000000));
+
                 if (responseParamNum == expectedParamNum)
                 {
                     // Success: response matches what we sent
                     results[responseParamNum] = value;
                 }
-                else if (responseParamNum == (expectedParamNum ^ 0x8000))
+                else if (isErrorBit15 || isErrorBit31)
                 {
-                    // Error: bit 15 was toggled by the device
+                    // Error: device toggled bit 15 or bit 31 on the parameter number
                     int errorCode = value[0] | (value[1] << 8) | (value[2] << 16) | (value[3] << 24);
                     string paramInfo = paramsByOffsetNumber.TryGetValue(expectedParamNum, out var errParam)
                         ? $"{errParam.number} [{errParam.name}]"
                         : $"0x{expectedParamNum:X}";
-                    logger.LogWarning("Scattered read: parameter {0} returned error code 0x{1:X}", paramInfo, errorCode);
+
+                    // 0x16 = "Object does not exist" — expected when a predefined parameter list
+                    // includes params not present on a particular firmware version (e.g., Emergency
+                    // Override params 1680-1684 on older PF753 firmware). Log at debug level only.
+                    if (errorCode == 0x16)
+                        logger.LogDebug("Scattered read: parameter {0} does not exist on this device (0x16)", paramInfo);
+                    else
+                        logger.LogWarning("Scattered read: parameter {0} returned error code 0x{1:X}", paramInfo, errorCode);
                 }
                 else
                 {

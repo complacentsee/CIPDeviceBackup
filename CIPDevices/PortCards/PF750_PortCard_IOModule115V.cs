@@ -1,24 +1,19 @@
 namespace powerFlexBackup.cipdevice.PortCards
 {
     /// <summary>
-    /// I/O Module 24V Port Card
+    /// Port  4 - I/O Module 115V Port Card
     ///
-    /// PowerFlex 750 Series I/O module at Port 4.
-    /// ProductCode 416 identifies the I/O Module 24V.
-    ///
-    /// 38 parameters (25 writable, 13 read-only).
-    /// Types: 0g== (0xD2 DWORD), yA== (0xC8 DINT), yg== (0xCA REAL)
+    /// 37 parameters (24 writable, 13 read-only).
+    /// Types: yA== (0xC8 DINT), yg== (0xCA REAL), 0g== (0xD2 DWORD)
     /// </summary>
-    public class PF750_PortCard_IOModule24V : PowerFlex750PortCard
+    public class PF750_PortCard_Port4IOModule115V : PowerFlex750PortCard
     {
-        public override ushort[] ProductCodes => [416,928];
-        public override string ProductName => "I/O Module 24V";
+        public override ushort[] ProductCodes => [672];
+        public override string ProductName => "I/O Module 115V";
         public override int HostClassID => 0x9F;
 
         protected override string hostParameterListJSON => @"[
             { 'number': '1', 'name': 'Dig In Sts', 'defaultValue': '0000000000000000', 'record': 'false', 'type': '0g==' },
-            { 'number': '2', 'name': 'Dig In Filt Mask', 'defaultValue': '0000000000111111', 'record': 'true', 'type': '0g==' },
-            { 'number': '3', 'name': 'Dig In Filt', 'defaultValue': '4', 'record': 'true', 'type': 'yA==' },
             { 'number': '5', 'name': 'Dig Out Sts', 'defaultValue': '0000000000000000', 'record': 'false', 'type': '0g==' },
             { 'number': '6', 'name': 'Dig Out Invert', 'defaultValue': '0000000000000000', 'record': 'true', 'type': '0g==' },
             { 'number': '10', 'name': 'RO0 Sel', 'defaultValue': '0', 'record': 'true', 'type': 'yA==' },
@@ -40,6 +35,7 @@ namespace powerFlexBackup.cipdevice.PortCards
             { 'number': '61', 'name': 'Anlg In1 Hi', 'defaultValue': '10', 'record': 'true', 'type': 'yg==' },
             { 'number': '62', 'name': 'Anlg In1 Lo', 'defaultValue': '0', 'record': 'true', 'type': 'yg==' },
             { 'number': '70', 'name': 'Anlg Out Type', 'defaultValue': '0000000000000000', 'record': 'true', 'type': '0g==' },
+            { 'number': '71', 'name': 'Anlg Out Abs', 'defaultValue': '0000000000000011', 'record': 'true', 'type': '0g==' },
             { 'number': '75', 'name': 'Anlg Out0 Sel', 'defaultValue': '3', 'record': 'true', 'type': 'yA==' },
             { 'number': '77', 'name': 'Anlg Out0 Data', 'defaultValue': '0', 'record': 'false', 'type': 'yg==' },
             { 'number': '78', 'name': 'Anlg Out0 DataHi', 'defaultValue': '60', 'record': 'true', 'type': 'yg==' },

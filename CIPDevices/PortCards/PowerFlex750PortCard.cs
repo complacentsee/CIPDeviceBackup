@@ -33,7 +33,7 @@ namespace powerFlexBackup.cipdevice.PortCards
         /// - 0x9F = HOST memory class (most cards)
         /// - 0x93 = DPI class (comm adapters like 20-COMM-E)
         /// </summary>
-        public abstract int ClassID { get; }
+        public abstract int HostClassID { get; }
 
         /// <summary>
         /// Whether this card supports scattered read (service 0x4D, class 0x93).

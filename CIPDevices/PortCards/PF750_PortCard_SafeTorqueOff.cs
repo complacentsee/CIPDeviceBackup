@@ -15,7 +15,7 @@ namespace powerFlexBackup.cipdevice.PortCards
     {
         public override ushort[] ProductCodes => [16544];
         public override string ProductName => "Safe Torque Off";
-        public override int ClassID => 0x9F;  // Standard HOST memory class (though not used)
+        public override int HostClassID => 0x9F;
 
         // Safe Torque Off modules don't expose CIP-accessible parameters
         // Empty list prevents dynamic read attempts

@@ -13,7 +13,7 @@ namespace powerFlexBackup.cipdevice.PortCards
     {
         public override ushort[] ProductCodes => [2192];
         public override string ProductName => "PowerFlex 755";
-        public override int ClassID => 0x9F;
+        public override int HostClassID => 0x9F;
 
         protected override string hostParameterListJSON => @"[
             { 'number': '1', 'name': 'Output Frequency', 'defaultValue': '0', 'record': 'false', 'type': 'yg==' },
