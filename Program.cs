@@ -19,6 +19,7 @@ namespace powerFlexBackup
             String address = "";
             string? cipRoute = null;
             FileInfo? outputFile = null;
+            FileInfo? l5xFile = null;
             int? classID = null;
 
             var rootCommand = new RootCommand(String.Format("Application to record Ethernet CIP device parameters and save to file." +
@@ -69,6 +70,12 @@ namespace powerFlexBackup
             };
             rootCommand.Add(setConnectionTimeoutOption);
 
+            var l5xOption = new Option<FileInfo?>("--l5x")
+            {
+                Description = "Path to an L5X file. Parses modules, builds CIP routes, and backs up each supported device."
+            };
+            rootCommand.Add(l5xOption);
+
             var setParameterClassIDOption = new Option<int?>("--classID")
             {
                 Description = "Specify Custom Parameter ClassID.",
@@ -81,6 +88,14 @@ namespace powerFlexBackup
                 address = parseResult.GetValue(hostOption)!;
                 cipRoute = parseResult.GetValue(routeOption);
                 outputFile = parseResult.GetValue(fileOption);
+                l5xFile = parseResult.GetValue(l5xOption);
+
+                if (l5xFile != null && cipRoute != null)
+                {
+                    Console.Error.WriteLine("Error: --l5x and --CIProute cannot be used together.");
+                    Environment.ExitCode = 1;
+                    return;
+                }
 
                 var setParameterClassIDValue = parseResult.GetValue(setParameterClassIDOption);
                 if(setParameterClassIDValue is not null)
@@ -118,7 +133,10 @@ namespace powerFlexBackup
                 var config = serviceProvider.GetRequiredService<IOptions<AppConfiguration>>().Value;
                 AppConfiguration.OutputAllRecordsStatic = config.OutputAllRecords;
 
-                Environment.ExitCode = mainProgram(serviceProvider);
+                if (l5xFile != null)
+                    Environment.ExitCode = l5xProgram(serviceProvider);
+                else
+                    Environment.ExitCode = mainProgram(serviceProvider);
             });
 
             var parseResult = rootCommand.Parse(args);
@@ -179,6 +197,119 @@ namespace powerFlexBackup
                 eeipClient.UnRegisterSession();
                 Thread.Sleep(250);
                 return 0;
+            }
+
+            int l5xProgram(IServiceProvider serviceProvider){
+
+                var cipDeviceFactory = serviceProvider.GetRequiredService<CIPDeviceFactory>();
+                var eeipClient = serviceProvider.GetRequiredService<EEIPClient>();
+                var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
+                var config = serviceProvider.GetRequiredService<IOptions<AppConfiguration>>().Value;
+
+                if (!l5xFile!.Exists)
+                {
+                    logger.LogError("L5X file not found: {0}", l5xFile.FullName);
+                    return 1;
+                }
+
+                // When --l5x is used, --output is treated as a folder path
+                var backupDir = outputFile!.Extension == ""
+                    ? outputFile.FullName
+                    : outputFile.Directory!.FullName;
+                Directory.CreateDirectory(backupDir);
+
+                Console.WriteLine("Parsing L5X file: {0}", l5xFile.FullName);
+                var allModules = L5XParser.Parse(l5xFile.FullName);
+                var candidates = L5XParser.GetBackupCandidates(allModules);
+
+                Console.WriteLine();
+                Console.WriteLine("=== L5X Module Summary ===");
+                Console.WriteLine("Total modules: {0}", allModules.Count);
+                Console.WriteLine("Backup candidates: {0}", candidates.Count);
+                Console.WriteLine();
+
+                var skipped = allModules.Where(m => !m.IsBackupCandidate).ToList();
+                if (skipped.Any())
+                {
+                    Console.WriteLine("Skipped modules:");
+                    foreach (var m in skipped)
+                        Console.WriteLine("  {0} ({1}) - {2}", m.Name, m.CatalogNumber, m.SkipReason);
+                    Console.WriteLine();
+                }
+
+                Console.WriteLine("Devices to back up:");
+                foreach (var m in candidates)
+                    Console.WriteLine("  {0} ({1}) - Route: {2}", m.Name, m.CatalogNumber, m.CIPRoute);
+                Console.WriteLine();
+
+                int succeeded = 0;
+                int failed = 0;
+                var failedDevices = new List<string>();
+
+                foreach (var module in candidates)
+                {
+                    Console.WriteLine("[{0}/{1}] Backing up {2} ({3}) via route {4}...",
+                        succeeded + failed + 1, candidates.Count,
+                        module.Name, module.CatalogNumber, module.CIPRoute);
+
+                    try
+                    {
+                        var routeBytes = Sres.Net.EEIP.CIPRouteBuilder.ParsePath(module.CIPRoute!);
+                        CIPDevice cipDevice = cipDeviceFactory.getDevicefromAddress(address, routeBytes);
+
+                        if (!config.OutputAllRecords)
+                        {
+                            cipDevice.getDeviceParameterValues();
+                            cipDevice.removeNonRecordedDeviceParameters();
+                            cipDevice.removeDefaultDeviceParameters();
+                        }
+                        else
+                        {
+                            cipDevice.getAllDeviceParameters();
+                        }
+
+                        var outputPath = Path.Combine(backupDir, module.Name + ".txt");
+                        using (StreamWriter output = new StreamWriter(outputPath))
+                        {
+                            foreach (DeviceParameterObject paramObj in cipDevice.getParameterObject())
+                            {
+                                output.Write(JsonConvert.SerializeObject(paramObj, Formatting.Indented));
+                                output.WriteLine();
+                            }
+                        }
+
+                        eeipClient.UnRegisterSession();
+                        Thread.Sleep(250);
+
+                        succeeded++;
+                        Console.WriteLine("  Saved to {0}", module.Name + ".txt");
+                    }
+                    catch (Exception e)
+                    {
+                        failed++;
+                        failedDevices.Add(module.Name);
+                        logger.LogError("  FAILED: {0} - {1}", module.Name, e.Message);
+
+                        try { eeipClient.UnRegisterSession(); } catch { }
+                        Thread.Sleep(250);
+                    }
+                }
+
+                Console.WriteLine();
+                Console.WriteLine("=== Backup Complete ===");
+                Console.WriteLine("  Succeeded: {0}", succeeded);
+                Console.WriteLine("  Failed:    {0}", failed);
+                Console.WriteLine("  Output:    {0}", Path.GetFullPath(backupDir));
+
+                if (failedDevices.Any())
+                {
+                    Console.WriteLine();
+                    Console.WriteLine("  Failed devices:");
+                    foreach (var name in failedDevices)
+                        Console.WriteLine("    {0}", name);
+                }
+
+                return failed > 0 ? 1 : 0;
             }
 
         }

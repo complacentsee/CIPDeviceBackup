@@ -199,6 +199,28 @@ namespace powerFlexBackup
                 return wildcardMatch ?? typeof(CIPDevice_Generic);
             }
 
+            public static bool IsDeviceSupported(int deviceType, int productCode)
+            {
+                foreach (var type in _deviceTypes.Value)
+                {
+                    if (type == typeof(CIPDevice_Generic))
+                        continue;
+
+                    System.Attribute[] attrs = System.Attribute.GetCustomAttributes(type);
+                    foreach (System.Attribute attr in attrs)
+                    {
+                        if (attr is SupportedDevice a)
+                        {
+                            if (a.map.Any(x => x.deviceType == deviceType && x.productCode.HasValue && x.productCode.Value == productCode))
+                                return true;
+                            if (a.map.Any(x => x.deviceType == deviceType && !x.productCode.HasValue))
+                                return true;
+                        }
+                    }
+                }
+                return false;
+            }
+
             public static string GetSupportedDevicesDisplay()
             {
 
