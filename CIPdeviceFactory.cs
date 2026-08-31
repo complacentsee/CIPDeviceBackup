@@ -46,7 +46,12 @@ namespace powerFlexBackup
             if(config.OutputVerbose)
                 Console.WriteLine("Address {0} is valid. Validating connectivity...", hostAddress);
 
-            if(config.SkipPing || !validateNetworkConnection(hostAddress)){
+            // --noping means "don't ping", not "fail". The condition used to
+            // read `SkipPing || !validateNetworkConnection(...)`, which threw
+            // immediately whenever the flag was set -- the exact opposite of
+            // what the option is for, and fatal behind a firewall with ICMP
+            // blocked, which is the case the option exists to serve.
+            if(!config.SkipPing && !validateNetworkConnection(hostAddress)){
                 logger.LogError("Unable to ping IP Address: {0}", hostAddress);
                 throw new InvalidOperationException("Unable to ping device.");
             }

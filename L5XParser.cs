@@ -13,7 +13,14 @@ namespace powerFlexBackup
         public string ParentModule { get; set; } = "";
         public int ParentModPortId { get; set; }
         public bool Inhibited { get; set; }
-        public string? EthernetAddress { get; set; }
+        /// <summary>
+        /// The address a parent uses to reach this module: the Address of the
+        /// module's own upstream port, whatever type that port is. For a drive
+        /// on a network this is its IP; for a scanner in the local chassis it
+        /// is the slot number on its upstream ICP port. Both are addresses a
+        /// CIP route segment can name.
+        /// </summary>
+        public string? UpstreamAddress { get; set; }
         public string? CIPRoute { get; set; }
         public bool IsBackupCandidate { get; set; }
         public string? SkipReason { get; set; }
@@ -58,14 +65,19 @@ namespace powerFlexBackup
                 Inhibited = bool.Parse(elem.Attribute("Inhibited")?.Value ?? "false")
             };
 
+            // Take the upstream port whatever its type. Filtering to
+            // Type=="Ethernet" here silently skipped every chassis-resident
+            // scanner -- a 1756-EN2T's upstream port is ICP, addressed by slot
+            // number -- which left BuildRoute with no way to name the first hop
+            // and dropped every drive behind such a scanner as "unable to build
+            // route".
             foreach (var port in elem.Descendants("Port"))
             {
                 var upstream = port.Attribute("Upstream")?.Value;
-                var portType = port.Attribute("Type")?.Value;
                 var address = port.Attribute("Address")?.Value;
-                if (upstream == "true" && portType == "Ethernet" && !string.IsNullOrEmpty(address))
+                if (upstream == "true" && !string.IsNullOrEmpty(address))
                 {
-                    mod.EthernetAddress = address;
+                    mod.UpstreamAddress = address;
                     break;
                 }
             }
@@ -89,10 +101,10 @@ namespace powerFlexBackup
                 return;
             }
 
-            if (string.IsNullOrEmpty(mod.EthernetAddress))
+            if (string.IsNullOrEmpty(mod.UpstreamAddress))
             {
                 mod.IsBackupCandidate = false;
-                mod.SkipReason = "No Ethernet address";
+                mod.SkipReason = "No upstream port address";
                 return;
             }
 
@@ -117,7 +129,7 @@ namespace powerFlexBackup
                 if (!allModules.TryGetValue(current.ParentModule, out var parent))
                     return null;
 
-                if (string.IsNullOrEmpty(current.EthernetAddress))
+                if (string.IsNullOrEmpty(current.UpstreamAddress))
                 {
                     var upstreamAddress = GetUpstreamAddress(current, allModules);
                     if (upstreamAddress == null)
@@ -126,7 +138,7 @@ namespace powerFlexBackup
                 }
                 else
                 {
-                    segments.Insert(0, $"{current.ParentModPortId},{current.EthernetAddress}");
+                    segments.Insert(0, $"{current.ParentModPortId},{current.UpstreamAddress}");
                 }
 
                 current = parent;
@@ -134,13 +146,13 @@ namespace powerFlexBackup
 
             if (current == mod)
             {
-                segments.Add($"{mod.ParentModPortId},{mod.EthernetAddress}");
+                segments.Add($"{mod.ParentModPortId},{mod.UpstreamAddress}");
             }
             else
             {
-                if (string.IsNullOrEmpty(current.EthernetAddress))
+                if (string.IsNullOrEmpty(current.UpstreamAddress))
                     return null;
-                segments.Insert(0, $"{current.ParentModPortId},{current.EthernetAddress}");
+                segments.Insert(0, $"{current.ParentModPortId},{current.UpstreamAddress}");
             }
 
             return string.Join(",", segments);
@@ -148,8 +160,8 @@ namespace powerFlexBackup
 
         private static string? GetUpstreamAddress(L5XModule mod, Dictionary<string, L5XModule> allModules)
         {
-            if (!string.IsNullOrEmpty(mod.EthernetAddress))
-                return mod.EthernetAddress;
+            if (!string.IsNullOrEmpty(mod.UpstreamAddress))
+                return mod.UpstreamAddress;
             return null;
         }
 
