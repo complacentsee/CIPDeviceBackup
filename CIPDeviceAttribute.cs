@@ -1,4 +1,4 @@
-namespace powerFlexBackup.cipdevice.deviceParameterObjects{
+namespace cipDeviceBackup.cipdevice.deviceParameterObjects{
 
     [System.AttributeUsage(System.AttributeTargets.Class |  
                         System.AttributeTargets.Struct,  

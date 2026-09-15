@@ -1,4 +1,4 @@
-namespace powerFlexBackup.cipdevice.PortCards
+namespace cipDeviceBackup.cipdevice.PortCards
 {
     /// <summary>
     /// Port  6 - DeviceNet Port Card

@@ -1,4 +1,4 @@
-namespace powerFlexBackup.cipdevice.PortCards
+namespace cipDeviceBackup.cipdevice.PortCards
 {
     /// <summary>
     /// Safe Torque Off (STO) Safety Module

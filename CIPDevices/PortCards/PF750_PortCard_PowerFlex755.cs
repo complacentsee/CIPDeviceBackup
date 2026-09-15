@@ -1,4 +1,4 @@
-namespace powerFlexBackup.cipdevice.PortCards
+namespace cipDeviceBackup.cipdevice.PortCards
 {
     /// <summary>
     /// PowerFlex 755 Main Drive Controller

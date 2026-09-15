@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using powerFlexBackup.cipdevice.deviceParameterObjects;
+using cipDeviceBackup.cipdevice.deviceParameterObjects;
 
-namespace powerFlexBackup.cipdevice
+namespace cipDeviceBackup.cipdevice
 {
     /// <summary>
     /// PowerFlex 70 accessed via DeviceNet (20-COMM-D adapter)

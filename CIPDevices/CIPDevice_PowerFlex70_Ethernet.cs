@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using powerFlexBackup.cipdevice.deviceParameterObjects;
+using cipDeviceBackup.cipdevice.deviceParameterObjects;
 
-namespace powerFlexBackup.cipdevice
+namespace cipDeviceBackup.cipdevice
 {
     [SupportedDevice("PowerFlex 70 Series", 123, 50, true)]
     public class CIPDevice_PowerFlex70_Ethernet : CIPDevice_PowerFlex70

@@ -1,4 +1,4 @@
-namespace powerFlexBackup.cipdevice{
+namespace cipDeviceBackup.cipdevice{
     public static class CIPDeviceHelper{
 
         // reverse byte order (16-bit)

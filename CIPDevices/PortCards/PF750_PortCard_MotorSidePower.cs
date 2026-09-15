@@ -1,4 +1,4 @@
-namespace powerFlexBackup.cipdevice.PortCards
+namespace cipDeviceBackup.cipdevice.PortCards
 {
     /// <summary>
     /// Motor Side Power Port Card

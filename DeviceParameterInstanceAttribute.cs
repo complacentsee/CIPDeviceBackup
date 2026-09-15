@@ -1,4 +1,4 @@
-namespace powerFlexBackup.cipdevice.deviceParameterObjects
+namespace cipDeviceBackup.cipdevice.deviceParameterObjects
 {
     public class InstanceAttribute
     {

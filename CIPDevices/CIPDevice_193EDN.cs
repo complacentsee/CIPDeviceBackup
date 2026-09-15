@@ -1,9 +1,9 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using powerFlexBackup.cipdevice.deviceParameterObjects;
+using cipDeviceBackup.cipdevice.deviceParameterObjects;
 
-namespace powerFlexBackup.cipdevice
+namespace cipDeviceBackup.cipdevice
 {
     /// <summary>
     /// E1/193-EDN DeviceNet Starters

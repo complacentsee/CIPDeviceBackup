@@ -1,7 +1,7 @@
 using System.Xml.Linq;
-using powerFlexBackup.cipdevice.deviceParameterObjects;
+using cipDeviceBackup.cipdevice.deviceParameterObjects;
 
-namespace powerFlexBackup
+namespace cipDeviceBackup
 {
     public class L5XModule
     {

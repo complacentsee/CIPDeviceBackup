@@ -4,11 +4,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using powerFlexBackup.cipdevice;
+using cipDeviceBackup.cipdevice;
 using System.CommandLine;
-using powerFlexBackup.cipdevice.deviceParameterObjects;
+using cipDeviceBackup.cipdevice.deviceParameterObjects;
 
-namespace powerFlexBackup
+namespace cipDeviceBackup
 {
     class Program
     {

@@ -1,4 +1,4 @@
-namespace powerFlexBackup.cipdevice.PortCards
+namespace cipDeviceBackup.cipdevice.PortCards
 {
     /// <summary>
     /// Port  4 - I/O Module 115V Port Card

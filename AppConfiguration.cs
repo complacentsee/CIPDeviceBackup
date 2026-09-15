@@ -1,4 +1,4 @@
-namespace powerFlexBackup
+namespace cipDeviceBackup
 {
     public class AppConfiguration
     {

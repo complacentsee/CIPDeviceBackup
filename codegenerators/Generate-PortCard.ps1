@@ -190,7 +190,7 @@ $readOnlyCount = $params.Count - $writableCount
 $paramListStr = $paramLines -join ",`n"
 
 $csContent = @"
-namespace powerFlexBackup.cipdevice.PortCards
+namespace cipDeviceBackup.cipdevice.PortCards
 {
     /// <summary>
     /// $productName Port Card

@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 
-namespace powerFlexBackup.cipdevice.deviceParameterObjects
+namespace cipDeviceBackup.cipdevice.deviceParameterObjects
 {
     public static class DPIOnlineReadFull
     {

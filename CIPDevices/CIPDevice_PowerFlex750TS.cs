@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
-using powerFlexBackup.cipdevice.deviceParameterObjects;
+using cipDeviceBackup.cipdevice.deviceParameterObjects;
 
-namespace powerFlexBackup.cipdevice
+namespace cipDeviceBackup.cipdevice
 {
     [SupportedDevice("PowerFlex 750TS Series", 143, 7568)]
     public class CIPDevice_PowerFlex750TS : CIPDevice_PowerFlex750Base

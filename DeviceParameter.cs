@@ -1,5 +1,5 @@
 using Newtonsoft.Json;
-namespace powerFlexBackup.cipdevice.deviceParameterObjects
+namespace cipDeviceBackup.cipdevice.deviceParameterObjects
 {
     public class DeviceParameter
     {

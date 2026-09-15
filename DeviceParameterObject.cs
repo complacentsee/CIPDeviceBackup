@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-namespace powerFlexBackup.cipdevice.deviceParameterObjects
+namespace cipDeviceBackup.cipdevice.deviceParameterObjects
 {
     public class DeviceParameterObject
     {
