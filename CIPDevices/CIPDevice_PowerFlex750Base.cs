@@ -64,7 +64,20 @@ namespace cipDeviceBackup.cipdevice
                     bool deviceIsHIM = portIdentity.ProductName.Contains("HIM") || portIdentity.ProductCode == 767;
                     bool portIsEmpty = portIdentity.ProductName.Contains("Not") || portIdentity.ProductCode == 65280;
 
-                    if (deviceIsHIM || portIsEmpty){
+                    // Inventory line per port so a failing/odd drive can be diagnosed
+                    // from the log alone: what card is in each port and how we
+                    // classified it. Empty ports stay at Debug to keep output clean.
+                    if (portIsEmpty) {
+                        logger.LogDebug("Port {0} (instance {1}): empty (ProductCode {2})", i - 1, i, portIdentity.ProductCode);
+                        continue;
+                    }
+
+                    logger.LogInformation("Port {0} (instance {1}): {2} [ProductCode {3}, Vendor {4}, rev {5}.{6}] -- {7}",
+                        i - 1, i, portIdentity.ProductName, portIdentity.ProductCode, portIdentity.VendorID,
+                        portIdentity.revision.Major, portIdentity.revision.Minor,
+                        deviceIsHIM ? "skipped (HIM)" : "included");
+
+                    if (deviceIsHIM){
                         continue;
                     }
                         parameterObject.Add(new DeviceParameterObject(ClassID, portIdentity, new List<DeviceParameter>(), i-1));
@@ -77,10 +90,18 @@ namespace cipDeviceBackup.cipdevice
         public override void getAllDeviceParameters(){
             getAllDevicePortIdentities();
             var originalCount = parameterObject.Count;
-            Console.WriteLine("Number of Device Parameter Objects: {0}", originalCount);
+            var skippedPorts = new List<int>();
+            logger.LogInformation("Discovered {0} parameter object(s) to collect.", originalCount);
 
             for (int index = 0; index < originalCount; index++){
                 var PortGroup = parameterObject[index];
+
+                // Isolate each port so one unsupported card or malformed
+                // response degrades to a skipped port instead of aborting the
+                // whole drive backup. Without this, a single IndexOutOfRange or
+                // CIP error anywhere below propagates all the way out to
+                // Program.cs and fails the entire upload.
+                try {
 
                 // Try to get predefined parameter list
                 var predefinedParams = tryGetPredefinedParameterList(
@@ -93,8 +114,10 @@ namespace cipDeviceBackup.cipdevice
                 if (predefinedParams != null)
                 {
                     // Use predefined list - faster!
-                    Console.WriteLine("Loading predefined parameters for {0}",
-                        PortGroup.identityObject.ProductName);
+                    logger.LogInformation("Port {0}: predefined list for {1} ({2} params, class 0x{3:X}, offset 0x{4:X4}, {5})",
+                        PortGroup.Port, PortGroup.identityObject.ProductName, predefinedParams.Count,
+                        classID, portMap[PortGroup.Port].Offset,
+                        useScatteredRead ? "scattered read" : "individual reads");
 
                     // Set the ClassID on the port group so it serializes correctly
                     PortGroup.ClassID = classID;
@@ -151,19 +174,53 @@ namespace cipDeviceBackup.cipdevice
                         ClassID = 0x93;
                     }
 
-                    Console.WriteLine("Getting Parameters for {0} (dynamic read)",
-                        PortGroup.identityObject.ProductName);
+                    logger.LogInformation("Port {0}: no predefined list for {1} (ProductCode {2}) -- dynamic read (class 0x{3:X}, offset 0x{4:X4})",
+                        PortGroup.Port, PortGroup.identityObject.ProductName,
+                        PortGroup.identityObject.ProductCode, ClassID, portMap[PortGroup.Port].Offset);
                     getAllPortParameters(portMap[PortGroup.Port].Offset, index, ClassID);
                 }
+
+                } catch (Exception e) {
+                    skippedPorts.Add(PortGroup.Port);
+                    logger.LogWarning("Skipping port {0} ({1}, ProductCode {2}): {3}: {4}",
+                        PortGroup.Port,
+                        PortGroup.identityObject.ProductName,
+                        PortGroup.identityObject.ProductCode,
+                        e.GetType().Name,
+                        e.Message);
+                }
             }
+
+            // Summary so a test run tells you at a glance whether every port
+            // came back, and which ones to investigate if not.
+            var totalParams = parameterObject.Sum(p => p.ParameterList?.Count ?? 0);
+            if (skippedPorts.Count == 0)
+                logger.LogInformation("PowerFlex 750 backup complete: {0} parameter objects, {1} parameters, no ports skipped.",
+                    parameterObject.Count, totalParams);
+            else
+                logger.LogWarning("PowerFlex 750 backup complete with {0} port(s) skipped: [{1}]. Collected {2} parameter objects, {3} parameters.",
+                    skippedPorts.Count, string.Join(", ", skippedPorts), parameterObject.Count, totalParams);
         }
 
         protected virtual void getAllPortParameters(int offset, int instance = 0, int ClassID = 0x9F){
             var parametersRemaning = true;
             int parameterNumber = 1;
             while(parametersRemaning){
+                // A DPI Online Read Full record is 72 bytes. GetAttributeSingle
+                // returns an empty array when the device rejects the read (e.g.
+                // a port we don't fully support, or a parameter that doesn't
+                // exist on this firmware). Decoding a short buffer throws
+                // IndexOutOfRange from the descriptor/byte helpers, so stop here
+                // instead of letting it bubble up and fail the whole backup.
+                var rawParameter = readPF750DPIOnlineReadFull(parameterNumber + offset, ClassID);
+                if (rawParameter.Length < 72){
+                    logger.LogWarning("Stopping dynamic read at parameter {0} (offset 0x{1:X}): device returned {2} bytes, expected 72.",
+                        parameterNumber, offset, rawParameter.Length);
+                    break;
+                }
+
                 var nextParameter = DPIOnlineReadFull.ByteArrayToDeviceParameter(
-                    readPF750DPIOnlineReadFull(parameterNumber + offset, ClassID),
+                    rawParameter,
                     logger,
                     this.getParameterValuefromBytes);
                 if (nextParameter.NextParameter < parameterNumber){
