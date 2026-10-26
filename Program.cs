@@ -116,11 +116,15 @@ namespace cipDeviceBackup
                         options.ConnectionTimeout = (int)timeoutValue;
                 });
 
-                // Configure logging
+                // Configure logging. --verbose lowers the floor to Debug so the
+                // per-port / per-parameter diagnostics (e.g. a parameter that
+                // doesn't exist on this firmware, logged at Debug) surface when
+                // you're trying to work out why a device won't back up.
+                var verboseLogging = parseResult.GetValue(outputVerboseOption) == true;
                 services.AddLogging(builder => builder
                     .AddConsole()
                     .AddDebug()
-                    .SetMinimumLevel(LogLevel.Information));
+                    .SetMinimumLevel(verboseLogging ? LogLevel.Debug : LogLevel.Information));
 
                 // Register services
                 services.AddSingleton<EEIPClient>();
